@@ -1,0 +1,80 @@
+name: Django CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: printdb
+          POSTGRES_USER: print_user
+          POSTGRES_PASSWORD: print_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U print_user -d printdb -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DJANGO_SECRET_KEY: test_key
+      DJANGO_DEBUG: "True"
+      DJANGO_ALLOWED_HOSTS: "*"
+      POSTGRES_DB: printdb
+      POSTGRES_USER: print_user
+      POSTGRES_PASSWORD: print_pass
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      CELERY_BROKER_URL: redis://localhost:6379/0
+      CELERY_RESULT_BACKEND: redis://localhost:6379/0
+      CELERY_TASK_ALWAYS_EAGER: "True"
+      ROLLBAR_TOKEN: dummy
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: |
+          poetry config virtualenvs.create false
+          poetry install --no-root --no-interaction --no-ansi
+
+      - name: Wait for Postgres
+        run: |
+          until pg_isready -h localhost -p 5432 -U print_user -d printdb; do
+            echo "Waiting for postgres..."
+            sleep 2
+          done
+
+      - name: Run migrations
+        run: python manage.py migrate --noinput
+
+      - name: Run tests
+        run: pytest -v

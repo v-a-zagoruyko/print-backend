@@ -61,6 +61,23 @@ jobs:
       - name: Install Poetry
         run: pip install poetry
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            pkg-config \
+            libcairo2-dev \
+            python3-dev \
+            libffi-dev \
+            libfreetype6-dev \
+            libpng-dev \
+            libjpeg-dev \
+            zlib1g-dev \
+            cmake \
+            ninja-build \
+            libpango1.0-dev
+
       - name: Install dependencies
         run: |
           poetry config virtualenvs.create false

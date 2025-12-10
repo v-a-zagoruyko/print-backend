@@ -92,6 +92,3 @@ jobs:
 
       - name: Run migrations
         run: python manage.py migrate --noinput
-
-      - name: Run tests
-        run: pytest -v

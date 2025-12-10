@@ -128,6 +128,7 @@ class ContractorModelSerializer(serializers.ModelSerializer, ProductRepresentati
 class ContractorLabelListSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
+    street = serializers.CharField()
     category = serializers.CharField()
 
 class ContractorLabelSerializer(serializers.Serializer):

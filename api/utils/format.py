@@ -114,6 +114,6 @@ def extract_contractor_from_mapping(instance):
 
 def extract_contractor_from_instance(instance):
     contractor = ""
-    if hasattr(instance, 'contractor'):
-        contractor = instance.contractor.select_related('contractor').first().name
+    if hasattr(instance, 'category'):
+        contractor = instance.category.name
     return contractor

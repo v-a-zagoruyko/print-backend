@@ -111,6 +111,7 @@ class ContractorLabelViewSet(ViewSet):
             results.append({
                 "id": contractor.pk,
                 "name": contractor.name,
+                "street": contractor.street,
                 "category": getattr(contractor.category, 'name', None),
             })
         return Response(ContractorLabelListSerializer(results, many=True).data)

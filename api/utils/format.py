@@ -31,7 +31,7 @@ def format_nutrition(base):
     protein = to_dec(base.get('protein', 0) or 0)
     fat = to_dec(base.get('fat', 0) or 0)
     carbs = to_dec(base.get('carbs', 0) or 0)
-    return f"{calories}К/{protein}Б/{fat}Ж/{carbs}У на 100гр."
+    return f"{calories}К/{protein}Б/{fat}Ж/{carbs}У на 100&nbsp;гр."
 
 def format_dates(base, now = datetime.now()):
     manufacture = f"Изготовлено: {now.strftime('%d.%m.%y')} 02:00"

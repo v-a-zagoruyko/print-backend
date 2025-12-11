@@ -164,11 +164,11 @@ if DEBUG:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 else:
-    SESSION_COOKIE_DOMAIN = ".большие-молодцы.рф"
+    SESSION_COOKIE_DOMAIN = ".xn----9sbkcordhnfb1hra5ce.xn--p1ai"
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = "None"
 
-    CSRF_COOKIE_DOMAIN = ".большие-молодцы.рф"
+    CSRF_COOKIE_DOMAIN = ".xn----9sbkcordhnfb1hra5ce.xn--p1ai"
     CSRF_COOKIE_SECURE = True
     CSRF_COOKIE_SAMESITE = "None"
 

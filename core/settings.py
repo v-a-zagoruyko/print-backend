@@ -148,8 +148,9 @@ REST_FRAMEWORK = {
 }
 
 
+CORS_ALLOW_CREDENTIALS = True
+
 if DEBUG:
-    CORS_ALLOW_CREDENTIALS = True
     CORS_ALLOWED_ORIGINS = [
         "http://front.local.molodcy:5173",
     ]

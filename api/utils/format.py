@@ -1,6 +1,6 @@
 import json
 from datetime import datetime, timedelta
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from decimal import Decimal, InvalidOperation
 from main.models import BaseInfo, OrgStandart, ContractorCategory
 
 def to_dec(value):
@@ -11,10 +11,13 @@ def to_dec(value):
         d = Decimal(str(value))
     except (InvalidOperation, ValueError):
         return ZERO_DEC
-    d = d.quantize(Decimal('0.11'))
+    d = d.quantize(Decimal('0.01'))
     if d == d.to_integral():
         return d.to_integral()
-    return d
+    s = format(d, 'f')
+    if '.' in s:
+        s = s.rstrip('0').rstrip('.')
+    return Decimal(s)
 
 def safe_load_json(val):
     if val in (None, ''):

@@ -206,8 +206,8 @@ else:
 # LOGGING
 # -------------------------
 
-LOG_DIR = BASE_DIR / "logs"
-LOG_DIR.mkdir(exist_ok=True)
+# LOG_DIR = BASE_DIR / "logs"
+# LOG_DIR.mkdir(exist_ok=True)
 
 LOGGING = {
     "version": 1,
@@ -226,36 +226,26 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
-        "file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "formatter": "verbose",
-            "filename": LOG_DIR / "app.log",
-            "maxBytes": 5 * 1024 * 1024,
-            "backupCount": 5,
-            "encoding": "utf-8",
-            "level": "INFO",
-            "delay": True,
-        },
     },
 
     "loggers": {
         "": {
-            "handlers": ["console", "file"],
+            "handlers": ["console",],
             "level": "INFO",
             "propagate": True,
         },
         "django": {
-            "handlers": ["console", "file"],
+            "handlers": ["console",],
             "level": "WARNING",
             "propagate": False,
         },
         "django.request": {
-            "handlers": ["console", "file"],
+            "handlers": ["console",],
             "level": "ERROR",
             "propagate": False,
         },
         "core": {
-            "handlers": ["console", "file"],
+            "handlers": ["console",],
             "level": "INFO",
             "propagate": False,
         },

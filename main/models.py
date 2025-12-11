@@ -11,16 +11,29 @@ class BaseInfo(models.Model):
     address = models.TextField(
         "Адрес",
         max_length=512,
+        null=True,
+        blank=True,
         help_text="Для этикеток товаров",
     )
     short_address = models.TextField(
         "Короткий адрес",
         max_length=512,
+        null=True,
+        blank=True,
         help_text="Для этикеток контрагентов",
     )
     phone_number = models.CharField(
         "Номер телефона",
         max_length=32,
+        null=True,
+        blank=True,
+    )
+    site_url = models.URLField(
+        "Адрес сайта",
+        max_length=512,
+        null=True,
+        blank=True,
+        help_text="вместе с http:// или https://",
     )
     history = HistoricalRecords()
 

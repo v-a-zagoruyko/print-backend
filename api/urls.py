@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import LabelPreviewViewSet, ProductLabelViewSet, ContractorLabelViewSet
+from .views import InfoView, LabelPreviewViewSet, ProductLabelViewSet, ContractorLabelViewSet
 
 router = DefaultRouter()
 
@@ -10,4 +10,5 @@ router.register(r'label/contractor', ContractorLabelViewSet, basename='contracto
 
 urlpatterns = [
     path('', include(router.urls)),
+    path("info/", InfoView.as_view(), name="info"),
 ]

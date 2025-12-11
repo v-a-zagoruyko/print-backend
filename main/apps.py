@@ -7,5 +7,13 @@ class MainConfig(AppConfig):
     verbose_name = "Основное"
 
     def ready(self):
+        from django.contrib import admin
+        from .models import BaseInfo
         from .utils.fonts import register_fonts
         register_fonts()
+
+        info = BaseInfo.get_solo()
+        if info:
+            admin.site.site_header = info.name
+            admin.site.site_title = info.name
+            admin.site.site_url = info.site_url

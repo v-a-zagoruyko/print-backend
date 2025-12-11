@@ -137,10 +137,43 @@ if not DEBUG:
 # CORS
 # -------------------------
 
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+    ],
+}
+
+CORS_ALLOW_CREDENTIALS = True
+
 if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
     CORS_ALLOW_CREDENTIALS = True
+
+    CORS_ALLOWED_ORIGINS = [
+        "http://front.local.molodcy:5173",
+    ]
+
+    CSRF_TRUSTED_ORIGINS = [
+        "http://front.local.molodcy:5173",
+    ]
+
+    SESSION_COOKIE_DOMAIN = ".local.molodcy"
+    CSRF_COOKIE_DOMAIN = ".local.molodcy"
+
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+else:
+    SESSION_COOKIE_DOMAIN = ".большие-молодцы.рф"
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = "None"
+
+    CSRF_COOKIE_DOMAIN = ".большие-молодцы.рф"
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_SAMESITE = "None"
+
     CORS_ALLOW_HEADERS = list(default_headers) + ["Authorization"]
     CORS_ALLOWED_ORIGINS = [
         "https://большие-молодцы.рф",

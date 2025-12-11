@@ -10,10 +10,7 @@ from .models import BaseInfo, Template, OrgStandart, ContractorCategory, Contrac
 
 logger = logging.getLogger(__name__)
 
-admin.site.site_header = "Администрирование"
-admin.site.site_title = "Администрирование"
 admin.site.index_title = "Панель управления"
-admin.site.site_url = "https://печать.большие-молодцы.рф"
 
 
 @admin.register(BaseInfo)

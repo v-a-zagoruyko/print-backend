@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from main.models import Product, Contractor
+from main.models import BaseInfo, Product, Contractor
 from .utils.format import (
     to_dec,
     safe_load_json,
@@ -86,6 +86,11 @@ class ProductPayloadSerializer(serializers.Serializer, ProductRepresentationMixi
     def to_representation(self, instance):
         base = super().to_representation(instance)
         return self.build_product_representation(base, instance)
+
+class BaseInfoModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseInfo
+        fields = '__all__'
 
 class ProductModelSerializer(serializers.ModelSerializer, ProductRepresentationMixin):
     class Meta:

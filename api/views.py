@@ -1,11 +1,13 @@
 import logging
+from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from main.models import Template, Product, Contractor
+from main.models import BaseInfo, Template, Product, Contractor
 from .serializers import (
+    BaseInfoModelSerializer,
     TemplatePayloadSerializer,
     ProductPayloadSerializer,
     ContractorPayloadSerializer,
@@ -21,8 +23,19 @@ from .services.label_service import label_service
 logger = logging.getLogger(__name__)
 
 
+class InfoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        info = BaseInfo.get_solo()
+        if not info:
+            return Response({}, status=404)
+        serializer = BaseInfoModelSerializer(info)
+        return Response(serializer.data)
+
+
 class LabelPreviewViewSet(ViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=['post'], url_path='template')
     def template(self, request):
@@ -58,7 +71,7 @@ class LabelPreviewViewSet(ViewSet):
 
 
 class ProductLabelViewSet(ViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def list(self, request):
         products = (
@@ -94,7 +107,7 @@ class ProductLabelViewSet(ViewSet):
 
 
 class ContractorLabelViewSet(ViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def list(self, request):
         contractors = (

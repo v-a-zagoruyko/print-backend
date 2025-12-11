@@ -166,11 +166,11 @@ if DEBUG:
 else:
     # SESSION_COOKIE_DOMAIN = ".большие-молодцы.рф"
     SESSION_COOKIE_SECURE = True
-    # SESSION_COOKIE_SAMESITE = "None"
+    SESSION_COOKIE_SAMESITE = "None"
 
     # CSRF_COOKIE_DOMAIN = ".большие-молодцы.рф"
     CSRF_COOKIE_SECURE = True
-    # CSRF_COOKIE_SAMESITE = "None"
+    CSRF_COOKIE_SAMESITE = "None"
 
     CORS_ALLOW_HEADERS = list(default_headers) + ["Authorization"]
     CORS_ALLOWED_ORIGINS = [

@@ -200,22 +200,22 @@ class Product(models.Model):
     calories = models.DecimalField(
         "Калории",
         max_digits=6,
-        decimal_places=1,
+        decimal_places=2,
     )
     protein = models.DecimalField(
         "Белки",
-        max_digits=4,
-        decimal_places=1,
+        max_digits=6,
+        decimal_places=2,
     )
     fat = models.DecimalField(
         "Жиры",
-        max_digits=4,
-        decimal_places=1,
+        max_digits=6,
+        decimal_places=2,
     )
     carbs = models.DecimalField(
         "Углеводы",
-        max_digits=4,
-        decimal_places=1,
+        max_digits=6,
+        decimal_places=2,
     )
     barcode = models.CharField(
         "Штрихкод",

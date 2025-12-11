@@ -75,13 +75,13 @@ class ProductPayloadSerializer(serializers.Serializer, ProductRepresentationMixi
     name = serializers.CharField(required=False, allow_blank=True)
     ingredients = serializers.CharField(required=False, allow_blank=True)
     weight = serializers.CharField(required=False, allow_blank=True)
-    calories = serializers.DecimalField(max_digits=6, decimal_places=1, required=False)
-    protein = serializers.DecimalField(max_digits=4, decimal_places=1, required=False)
-    fat = serializers.DecimalField(max_digits=4, decimal_places=1, required=False)
-    carbs = serializers.DecimalField(max_digits=4, decimal_places=1, required=False)
+    calories = serializers.DecimalField(max_digits=6, decimal_places=2, required=False)
+    protein = serializers.DecimalField(max_digits=4, decimal_places=2, required=False)
+    fat = serializers.DecimalField(max_digits=4, decimal_places=2, required=False)
+    carbs = serializers.DecimalField(max_digits=4, decimal_places=2, required=False)
     barcode = serializers.CharField(required=False, allow_blank=True)
     caption = serializers.CharField(required=False, allow_blank=True)
-    shelf_life = serializers.IntegerField(required=False)
+    best_before = serializers.IntegerField(required=False)
 
     def to_representation(self, instance):
         base = super().to_representation(instance)

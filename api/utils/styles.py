@@ -4,6 +4,16 @@ from reportlab.lib import colors
 STYLES = {
     "contractor__title": {
         "fontName": "Tahoma Bold",
+        "fontSize": 18,
+        "leading": 18,
+        "alignment": TA_CENTER,
+        "textColor": colors.black,
+        "leftIndent": 5,
+        "rightIndent": 5,
+        "bold": True,
+    },
+    "contractor__subtitle_1": {
+        "fontName": "Tahoma Bold",
         "fontSize": 14,
         "leading": 14,
         "alignment": TA_CENTER,
@@ -12,7 +22,7 @@ STYLES = {
         "rightIndent": 5,
         "bold": True,
     },
-    "contractor__subtitle": {
+    "contractor__subtitle_2": {
         "fontName": "Tahoma Bold",
         "fontSize": 10,
         "leading": 10,

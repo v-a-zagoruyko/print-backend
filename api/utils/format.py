@@ -11,7 +11,7 @@ def to_dec(value):
         d = Decimal(str(value))
     except (InvalidOperation, ValueError):
         return ZERO_DEC
-    d = d.quantize(Decimal('0.1'), rounding=ROUND_HALF_UP)
+    d = d.quantize(Decimal('0.11'))
     if d == d.to_integral():
         return d.to_integral()
     return d
@@ -31,11 +31,11 @@ def format_nutrition(base):
     protein = to_dec(base.get('protein', 0) or 0)
     fat = to_dec(base.get('fat', 0) or 0)
     carbs = to_dec(base.get('carbs', 0) or 0)
-    return f"{calories}К/{protein}Б/{fat}Ж/{carbs}У на 100 гр."
+    return f"{calories}К/{protein}Б/{fat}Ж/{carbs}У на 100гр."
 
 def format_dates(base, now = datetime.now()):
     manufacture = f"Изготовлено: {now.strftime('%d.%m.%y')} 02:00"
-    shelf_raw = base.get('shelf_life') or base.get('best_before') or 0
+    shelf_raw = base.get('best_before', 0)
     try:
         shelf_days = int(shelf_raw)
     except Exception:

@@ -12,15 +12,15 @@ class MainConfig(AppConfig):
 
         register_fonts()
 
-        # def set_admin_header(sender, **kwargs):
-        #     from .models import BaseInfo
-        #     try:
-        #         info = BaseInfo.get_solo()
-        #         if info:
-        #             admin.site.site_header = info.name
-        #             admin.site.site_title = info.name
-        #             admin.site.site_url = info.site_url
-        #     except Exception:
-        #         pass
+        def set_admin_header(sender, **kwargs):
+            from .models import BaseInfo
+            try:
+                info = BaseInfo.get_solo()
+                if info:
+                    admin.site.site_header = info.name
+                    admin.site.site_title = info.name
+                    admin.site.site_url = info.site_url
+            except Exception:
+                pass
 
-        # post_migrate.connect(set_admin_header, sender=self)
+        post_migrate.connect(set_admin_header, sender=self)

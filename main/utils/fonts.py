@@ -10,13 +10,10 @@ FONTS_DIR = BASE_DIR / "static" / "fonts"
 
 def register_fonts():
     fonts = {
-        "Georgia": "georgia.ttf",
-        "TimesNewRoman": "timesnewroman_bold.ttf",
-        "Malgun Gothic": "malgun-gothic.ttf",
         "Tahoma": "tahoma.ttf",
         "Tahoma Bold": "tahoma_bold.ttf",
-        "Roboto Semibold": "roboto_semibold.ttf",
-        "Roboto Medium": "roboto_medium.ttf",
+        "DejaVu Sans": "dejavu_sans.ttf",
+        "DejaVu Sans Bold": "dejavu_sans_bold.ttf",
     }
     for name, file in fonts.items():
         try:

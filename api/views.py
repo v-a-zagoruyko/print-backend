@@ -30,7 +30,14 @@ class InfoView(APIView):
         info = BaseInfo.get_solo()
         if not info:
             return Response({}, status=404)
-        serializer = BaseInfoModelSerializer(info)
+        result = {
+            "company_name": info.name,
+            "username": request.user.username,
+            "is_staff": request.user.is_staff,
+            "is_superuser": request.user.is_superuser,
+            "groups": list(request.user.groups.values_list('name', flat=True)),
+        }
+        serializer = BaseInfoModelSerializer(result)
         return Response(serializer.data)
 
 

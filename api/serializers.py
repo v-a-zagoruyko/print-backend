@@ -87,10 +87,12 @@ class ProductPayloadSerializer(serializers.Serializer, ProductRepresentationMixi
         base = super().to_representation(instance)
         return self.build_product_representation(base, instance)
 
-class BaseInfoModelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BaseInfo
-        fields = '__all__'
+class BaseInfoModelSerializer(serializers.Serializer):
+    company_name = serializers.CharField()
+    username = serializers.CharField()
+    is_staff = serializers.BooleanField()
+    is_superuser = serializers.BooleanField()
+    groups = serializers.ListField(child=serializers.CharField())
 
 class ProductModelSerializer(serializers.ModelSerializer, ProductRepresentationMixin):
     class Meta:

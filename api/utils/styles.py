@@ -3,7 +3,7 @@ from reportlab.lib import colors
 
 STYLES = {
     "contractor__title": {
-        "fontName": "Tahoma Bold",
+        "fontName": "DejaVu Sans Bold",
         "fontSize": 18,
         "leading": 18,
         "alignment": TA_CENTER,
@@ -13,7 +13,7 @@ STYLES = {
         "bold": True,
     },
     "contractor__subtitle_1": {
-        "fontName": "Tahoma Bold",
+        "fontName": "DejaVu Sans Bold",
         "fontSize": 14,
         "leading": 14,
         "alignment": TA_CENTER,
@@ -23,7 +23,7 @@ STYLES = {
         "bold": True,
     },
     "contractor__subtitle_2": {
-        "fontName": "Tahoma Bold",
+        "fontName": "DejaVu Sans Bold",
         "fontSize": 10,
         "leading": 10,
         "alignment": TA_CENTER,
@@ -33,7 +33,7 @@ STYLES = {
         "bold": True,
     },
     "contractor__caption": {
-        "fontName": "Tahoma Bold",
+        "fontName": "DejaVu Sans Bold",
         "fontSize": 8,
         "leading": 10,
         "alignment": TA_CENTER,
@@ -43,7 +43,7 @@ STYLES = {
         "bold": True,
     },
     "product__title": {
-        "fontName": "Tahoma Bold",
+        "fontName": "DejaVu Sans Bold",
         "fontSize": 10,
         "leading": 10,
         "alignment": TA_CENTER,
@@ -53,7 +53,7 @@ STYLES = {
         "bold": True,
     },
     "product__subtitle": {
-        "fontName": "Tahoma Bold",
+        "fontName": "DejaVu Sans Bold",
         "fontSize": 4,
         "leading": 4,
         "alignment": TA_LEFT,
@@ -63,7 +63,7 @@ STYLES = {
         "rightIndent": 3,
     },
     "product__body_1": {
-        "fontName": "Tahoma",
+        "fontName": "DejaVu Sans",
         "fontSize": 6,
         "leading": 6,
         "alignment": TA_LEFT,
@@ -74,7 +74,7 @@ STYLES = {
         "rightIndent": 3,
     },
     "product__body_2": {
-        "fontName": "Tahoma",
+        "fontName": "DejaVu Sans",
         "fontSize": 4.5,
         "leading": 5,
         "alignment": TA_LEFT,
@@ -83,7 +83,7 @@ STYLES = {
         "rightIndent": 0,
     },
     "product__caption": {
-        "fontName": "Tahoma",
+        "fontName": "DejaVu Sans",
         "fontSize": 4,
         "leading": 4.5,
         "alignment": TA_LEFT,

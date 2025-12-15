@@ -105,6 +105,7 @@ class ProductModelSerializer(serializers.ModelSerializer, ProductRepresentationM
 
 class ProductLabelListSerializer(serializers.Serializer):
     id = serializers.IntegerField()
+    template = serializers.CharField()
     name = serializers.CharField()
     category = serializers.CharField()
 

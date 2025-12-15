@@ -92,6 +92,7 @@ class ProductLabelViewSet(ViewSet):
 
             results.append({
                 "id": product.pk,
+                "template": product.template.name,
                 "name": product.name,
                 "category": getattr(product.category, 'name', None),
             })

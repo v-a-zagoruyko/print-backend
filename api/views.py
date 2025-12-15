@@ -11,7 +11,6 @@ from .serializers import (
     TemplatePayloadSerializer,
     ProductPayloadSerializer,
     ContractorPayloadSerializer,
-    ProductModelSerializer,
     ProductLabelSerializer,
     ProductLabelListSerializer,
     ContractorModelSerializer,
@@ -90,7 +89,6 @@ class ProductLabelViewSet(ViewSet):
 
         results = []
         for product in products:
-            serializer = ProductModelSerializer(product)
 
             results.append({
                 "id": product.pk,

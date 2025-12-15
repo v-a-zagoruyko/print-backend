@@ -36,7 +36,9 @@ def format_nutrition(base):
     carbs = to_dec(base.get('carbs', 0) or 0)
     return f"{calories}К/{protein}Б/{fat}Ж/{carbs}У на 100&nbsp;гр."
 
-def format_dates(base, now = datetime.now()):
+def format_dates(base, now):
+    if now is None:
+        now = timezone.now()
     manufacture = f"Изготовлено: {now.strftime('%d.%m.%y')} 02:00"
     shelf_raw = base.get('best_before', 0)
     try:

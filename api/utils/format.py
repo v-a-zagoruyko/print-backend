@@ -1,5 +1,6 @@
 import json
-from datetime import datetime, timedelta
+from django.utils import timezone
+from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 from main.models import BaseInfo, OrgStandart, ContractorCategory
 
@@ -36,7 +37,7 @@ def format_nutrition(base):
     carbs = to_dec(base.get('carbs', 0) or 0)
     return f"{calories}К/{protein}Б/{fat}Ж/{carbs}У на 100&nbsp;гр."
 
-def format_dates(base, now):
+def format_dates(base, now = None):
     if now is None:
         now = timezone.now()
     manufacture = f"Изготовлено: {now.strftime('%d.%m.%y')} 02:00"

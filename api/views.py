@@ -7,15 +7,14 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from main.models import BaseInfo, Template, Product, Contractor
 from .serializers import (
-    BaseInfoModelSerializer,
+    UserInfoModelSerializer,
     TemplatePayloadSerializer,
     ProductPayloadSerializer,
     ContractorPayloadSerializer,
-    ProductLabelSerializer,
-    ProductLabelListSerializer,
-    ContractorModelSerializer,
-    ContractorLabelSerializer,
-    ContractorLabelListSerializer
+    ProductTemplateSerializer,
+    ProductTemplateListSerializer,
+    ContractorTemplateSerializer,
+    ContractorTemplateListSerializer
 )
 from .services.label_service import label_service
 
@@ -36,11 +35,11 @@ class InfoView(APIView):
             "is_superuser": request.user.is_superuser,
             "groups": list(request.user.groups.values_list('name', flat=True)),
         }
-        serializer = BaseInfoModelSerializer(result)
+        serializer = UserInfoModelSerializer(result)
         return Response(serializer.data)
 
 
-class LabelPreviewViewSet(ViewSet):
+class TemplateLabelViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=['post'], url_path='template')
@@ -96,7 +95,7 @@ class ProductLabelViewSet(ViewSet):
                 "name": product.name,
                 "category": getattr(product.category, 'name', None),
             })
-        return Response(ProductLabelListSerializer(results, many=True).data)
+        return Response(ProductTemplateListSerializer(results, many=True).data)
 
     def retrieve(self, request, pk=None):
         product = get_object_or_404(Product, id=pk)
@@ -109,7 +108,7 @@ class ProductLabelViewSet(ViewSet):
             "category": getattr(product.category, 'name', None),
             "pdf": pdf,
         }
-        return Response(ProductLabelSerializer(result).data)
+        return Response(ProductTemplateSerializer(result).data)
 
 
 class ContractorLabelViewSet(ViewSet):
@@ -125,7 +124,6 @@ class ContractorLabelViewSet(ViewSet):
 
         results = []
         for contractor in contractors:
-            serializer = ContractorModelSerializer(contractor)
 
             results.append({
                 "id": contractor.pk,
@@ -133,7 +131,7 @@ class ContractorLabelViewSet(ViewSet):
                 "street": contractor.street,
                 "category": getattr(contractor.category, 'name', None),
             })
-        return Response(ContractorLabelListSerializer(results, many=True).data)
+        return Response(ContractorTemplateListSerializer(results, many=True).data)
 
     def retrieve(self, request, pk=None):
         contractor = get_object_or_404(Contractor, id=pk)
@@ -146,4 +144,4 @@ class ContractorLabelViewSet(ViewSet):
             "category": getattr(contractor.category, 'name', None),
             "pdf": pdf,
         }
-        return Response(ContractorLabelSerializer(result).data)
+        return Response(ContractorTemplateSerializer(result).data)

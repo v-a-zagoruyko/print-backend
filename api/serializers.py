@@ -58,6 +58,7 @@ class ContractorRepresentationMixin:
         result['company_short_info'] = format_company_short_info()
         return result
 
+
 class TemplatePayloadSerializer(serializers.Serializer):
     width = serializers.DecimalField(max_digits=4, decimal_places=1, required=False)
     height = serializers.DecimalField(max_digits=4, decimal_places=1, required=False)
@@ -70,6 +71,7 @@ class TemplatePayloadSerializer(serializers.Serializer):
             "height": to_dec(base.get('height', 0) or 0),
             "elements": safe_load_json(base.get('elements', '{}')),
         }
+
 
 class ProductPayloadSerializer(serializers.Serializer, ProductRepresentationMixin):
     name = serializers.CharField(required=False, allow_blank=True)
@@ -87,32 +89,6 @@ class ProductPayloadSerializer(serializers.Serializer, ProductRepresentationMixi
         base = super().to_representation(instance)
         return self.build_product_representation(base, instance)
 
-class BaseInfoModelSerializer(serializers.Serializer):
-    company_name = serializers.CharField()
-    username = serializers.CharField()
-    is_staff = serializers.BooleanField()
-    is_superuser = serializers.BooleanField()
-    groups = serializers.ListField(child=serializers.CharField())
-
-class ProductModelSerializer(serializers.ModelSerializer, ProductRepresentationMixin):
-    class Meta:
-        model = Product
-        fields = '__all__'
-
-    def to_representation(self, instance):
-        base = super().to_representation(instance)
-        return self.build_product_representation(base, instance)
-
-class ProductLabelListSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    template = serializers.CharField()
-    name = serializers.CharField()
-    category = serializers.CharField()
-
-class ProductLabelSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    category = serializers.CharField()
-    pdf = serializers.CharField()
 
 class ContractorPayloadSerializer(serializers.Serializer, ContractorRepresentationMixin):
     name = serializers.CharField(required=False, allow_blank=True)
@@ -124,22 +100,36 @@ class ContractorPayloadSerializer(serializers.Serializer, ContractorRepresentati
         base = super().to_representation(instance)
         return self.build_contractor_representation(base, instance)
 
-class ContractorModelSerializer(serializers.ModelSerializer, ProductRepresentationMixin):
-    class Meta:
-        model = Contractor
-        fields = '__all__'
 
-    def to_representation(self, instance):
-        base = super().to_representation(instance)
-        return self.build_contractor_representation(base, instance)
+class UserInfoModelSerializer(serializers.Serializer):
+    company_name = serializers.CharField()
+    username = serializers.CharField()
+    is_staff = serializers.BooleanField()
+    is_superuser = serializers.BooleanField()
+    groups = serializers.ListField(child=serializers.CharField())
 
-class ContractorLabelListSerializer(serializers.Serializer):
+
+class ProductTemplateListSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    template = serializers.CharField()
+    name = serializers.CharField()
+    category = serializers.CharField()
+
+
+class ProductTemplateSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    category = serializers.CharField()
+    pdf = serializers.CharField()
+
+
+class ContractorTemplateListSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
     street = serializers.CharField()
     category = serializers.CharField()
 
-class ContractorLabelSerializer(serializers.Serializer):
+
+class ContractorTemplateSerializer(serializers.Serializer):
     name = serializers.CharField()
     category = serializers.CharField()
     pdf = serializers.CharField()

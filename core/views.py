@@ -1,9 +1,11 @@
 import logging
 import redis
+from django.shortcuts import redirect
 from django.db.utils import OperationalError
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from core.utils.health import check_db, check_redis, check_celery
+from core.utils.redirect import is_allowed_redirect_url
 
 logger = logging.getLogger(__name__)
 
@@ -37,3 +39,9 @@ def health(request):
         logger.error("Celery health check failed", exc_info=e)
 
     return Response(status)
+
+def post_login_redirect(request):
+    dest = request.GET.get('url') or request.POST.get('url')
+    if dest and is_allowed_redirect_url(dest):
+        return redirect(dest)
+    return redirect('admin:index')

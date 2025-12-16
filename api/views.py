@@ -17,6 +17,7 @@ from .serializers import (
     ContractorTemplateListSerializer
 )
 from .services.label_service import label_service
+from .permissions import IsPrintOperator, IsContractor
 from .utils.admin import admin_has_change_perm, admin_change_url
 from .utils.format import extract_template_from_mapping
 
@@ -79,7 +80,7 @@ class TemplateLabelViewSet(ViewSet):
 
 
 class ProductLabelViewSet(ViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsPrintOperator]
 
     def list(self, request):
         products = (
@@ -116,7 +117,7 @@ class ProductLabelViewSet(ViewSet):
 
 
 class ContractorLabelViewSet(ViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsPrintOperator]
 
     def list(self, request):
         contractors = (

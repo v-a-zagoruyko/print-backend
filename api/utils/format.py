@@ -39,7 +39,7 @@ def format_nutrition(base):
 
 def format_dates(base, now = None):
     if now is None:
-        now = timezone.now()
+        now = timezone.now() + timedelta(days=1)
     manufacture = f"Изготовлено: {now.strftime('%d.%m.%y')} 02:00"
     shelf_raw = base.get('best_before', 0)
     try:

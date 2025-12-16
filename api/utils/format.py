@@ -30,6 +30,10 @@ def safe_load_json(val):
     except Exception:
         return {}
 
+def format_ingredients(base):
+    ingredients = base.get('ingredients', '')
+    return f"Состав: {ingredients}"
+
 def format_nutrition(base):
     calories = to_dec(base.get('calories', 0) or 0)
     protein = to_dec(base.get('protein', 0) or 0)

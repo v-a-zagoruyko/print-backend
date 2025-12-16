@@ -3,6 +3,7 @@ from main.models import BaseInfo, Product, Contractor
 from .utils.format import (
     to_dec,
     safe_load_json,
+    format_ingredients,
     format_nutrition,
     format_dates,
     format_company_info,
@@ -20,9 +21,9 @@ class ProductRepresentationMixin:
             "name": base.get('name', "") or "",
             "weight": base.get('weight', "") or "",
             "caption": base.get('caption', "") or "",
-            "ingredients": base.get('ingredients', "") or "",
             "barcode": base.get('barcode', "1111111111111"),
         }
+        result['ingredients'] = format_ingredients(base)
         result['nutrition'] = format_nutrition(base)
         manufacture, expiry = format_dates(base)
         result['manufacture_date'] = manufacture

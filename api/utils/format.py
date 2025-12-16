@@ -2,7 +2,7 @@ import json
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
-from main.models import BaseInfo, OrgStandart, ContractorCategory
+from main.models import BaseInfo, Template, OrgStandart, ContractorCategory
 
 def to_dec(value):
     ZERO_DEC = Decimal('0')
@@ -68,6 +68,24 @@ def format_company_short_info():
         f"{company.name}<br />"
         f"{company.short_address}"
     )
+
+def extract_template_from_mapping(instance):
+    templates_with_index = []
+    if isinstance(instance, dict):
+        for k, v in instance.items():
+            if k.startswith('product_template-') and k.endswith('-template') or k.startswith('contractor_template-') and k.endswith('-template'):
+                parts = k.split('-')
+                try:
+                    idx = int(parts[1])
+                except Exception:
+                    continue
+                if v not in (None, ''):
+                    templates_with_index.append((idx, str(v)))
+    templates_with_index.sort()
+    ids = [oid for _, oid in templates_with_index]
+    if not ids:
+        return []
+    return Template.objects.get(pk=ids[0])
 
 def extract_org_standarts_from_mapping(instance):
     org_ids_with_index = []

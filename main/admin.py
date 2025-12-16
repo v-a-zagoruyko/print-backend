@@ -6,7 +6,7 @@ from django_celery_beat import models
 from django_json_widget.widgets import JSONEditorWidget
 from simple_history.admin import SimpleHistoryAdmin
 from .utils.admin import generate_barcode
-from .models import BaseInfo, Template, OrgStandart, ContractorCategory, Contractor, Product, ProductCategory, ProductOrgStandart
+from .models import BaseInfo, Template, OrgStandart, ContractorCategory, ContractorTemplate, Contractor, Product, ProductCategory, ProductTemplate, ProductOrgStandart
 
 logger = logging.getLogger(__name__)
 
@@ -50,12 +50,19 @@ class ContractorCategoryAdmin(SimpleHistoryAdmin):
     list_display = ["name",]
 
 
+class ContractorTemplateInline(admin.TabularInline):
+    model = ContractorTemplate
+    fields = ["template",]
+    extra = 1
+    max_num = 1
+
+
 @admin.register(Contractor)
 class ContractorAdmin(SimpleHistoryAdmin):
     list_display = ["category", "name", "city", "street", "comment",]
     fieldsets = (
         ("Шаблон этикетки", {
-            "fields": ("template", "label_preview")
+            "fields": ("label_preview",)
         }),
         ("Основное", {
             "fields": ("category", "name")
@@ -67,15 +74,7 @@ class ContractorAdmin(SimpleHistoryAdmin):
     readonly_fields = ["label_preview",]
     search_fields = ["name", "city", "street",]
     list_filter = ["category", "city",]
-
-    def get_changeform_initial_data(self, request):
-        default_template = Template.objects.filter(name="Контрагент")
-        if not default_template.exists():
-            return {}
-
-        return {
-            'template': default_template.first().id
-        }
+    inlines = [ContractorTemplateInline,]
 
     @admin.display(description="Этикетка")
     def label_preview(self, obj):
@@ -89,6 +88,13 @@ class ContractorAdmin(SimpleHistoryAdmin):
             'js/generate_label.js',
             'js/contractor_template_preview.js',
         )
+
+
+class ProductTemplateInline(admin.TabularInline):
+    model = ProductTemplate
+    fields = ["template",]
+    extra = 1
+    max_num = 1
 
 
 class ProductOrgStandartInline(admin.TabularInline):
@@ -105,10 +111,10 @@ class ProductCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(SimpleHistoryAdmin):
-    list_display = ["name", "category", "weight", "calories", "protein", "fat", "carbs", "barcode_preview",]
+    list_display = ["name", "my_template", "category", "weight", "calories", "protein", "fat", "carbs", "barcode_preview",]
     fieldsets = (
         ("Шаблон этикетки", {
-            "fields": ("template", "label_preview")
+            "fields": ("label_preview",)
         }),
         ("Основное", {
             "fields": ("category", "name")
@@ -125,17 +131,14 @@ class ProductAdmin(SimpleHistoryAdmin):
     )
     readonly_fields = ["barcode_preview", "label_preview",]
     search_fields = ["name", "barcode",]
-    list_filter = ["template__name", "category",]
-    inlines = [ProductOrgStandartInline,]
+    list_filter = ["category",]
+    inlines = [ProductOrgStandartInline, ProductTemplateInline,]
 
-    def get_changeform_initial_data(self, request):
-        default_template = Template.objects.filter(name="Большие молодцы")
-        if not default_template.exists():
-            return {}
-
-        return {
-            'template': default_template.first().id
-        }
+    @admin.display(description="Шаблон")
+    def my_template(self, obj):
+        if not obj.my_template:
+            return "-"
+        return obj.my_template.template.name
 
     @admin.display(description="")
     def barcode_preview(self, obj):

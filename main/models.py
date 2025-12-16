@@ -164,11 +164,34 @@ class Contractor(models.Model):
         verbose_name_plural = "этикетки контрагентов"
         ordering = ["-category__name", "city", "street", "name",]
 
+    @property
+    def my_template(self):
+        return self.contractor_template.first()
+
     def __str__(self):
         name = self.category.name
         if self.name:
             name += f": {self.name}"
         return f"{name}, {self.street}"
+
+
+class ContractorTemplate(models.Model):
+    contractor = models.ForeignKey(
+        Contractor,
+        on_delete=models.CASCADE,
+        related_name="contractor_template",
+        verbose_name="Контрагент",
+    )
+    template = models.ForeignKey(
+        Template,
+        on_delete=models.PROTECT,
+        related_name="contractor_template",
+        verbose_name="Шаблон",
+    )
+
+    class Meta:
+        verbose_name = "этикетка контрагента"
+        verbose_name_plural = "этикетки контрагентов"
 
 
 class ProductCategory(models.Model):
@@ -253,18 +276,32 @@ class Product(models.Model):
         verbose_name = "этикетка товара"
         verbose_name_plural = "этикетки товаров"
         ordering = ["-category__name", "name",]
-        constraints = [
-            models.UniqueConstraint(
-                fields=[
-                    'template',
-                    'barcode'
-                ],
-                name='unique_barcode_per_template',
-            ),
-        ]
+
+    @property
+    def my_template(self):
+        return self.product_template.first()
 
     def __str__(self):
         return self.name
+
+
+class ProductTemplate(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="product_template",
+        verbose_name="Товар",
+    )
+    template = models.ForeignKey(
+        Template,
+        on_delete=models.PROTECT,
+        related_name="product_template",
+        verbose_name="Шаблон",
+    )
+
+    class Meta:
+        verbose_name = "этикетка товара"
+        verbose_name_plural = "этикетки товаров"
 
 
 class ProductOrgStandart(models.Model):

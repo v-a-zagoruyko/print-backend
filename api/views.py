@@ -18,6 +18,7 @@ from .serializers import (
 )
 from .services.label_service import label_service
 from .utils.admin import admin_has_change_perm, admin_change_url
+from .utils.format import extract_template_from_mapping
 
 logger = logging.getLogger(__name__)
 
@@ -53,12 +54,12 @@ class TemplateLabelViewSet(ViewSet):
     @action(detail=False, methods=['post'], url_path='product')
     def product(self, request):
         serializer = ProductPayloadSerializer(instance=request.data)
+        template = extract_template_from_mapping(request.data)
 
-        if 'template' not in request.data:
+        if not template:
             logger.error("Missing field: template")
             return Response({'error': 'Missing field: template'}, status=400)
 
-        template = get_object_or_404(Template, id=request.data['template'])
         image = label_service.generate_png_preview_base64(template, serializer.data)
         pdf = label_service.generate_pdf_preview_base64(template, serializer.data)
         return Response({'image': image, 'pdf': pdf})
@@ -66,12 +67,12 @@ class TemplateLabelViewSet(ViewSet):
     @action(detail=False, methods=['post'], url_path='contractor')
     def contractor(self, request):
         serializer = ContractorPayloadSerializer(instance=request.data)
+        template = extract_template_from_mapping(request.data)
 
-        if 'template' not in request.data:
+        if not template:
             logger.error("Missing field: template")
             return Response({'error': 'Missing field: template'}, status=400)
 
-        template = get_object_or_404(Template, id=request.data['template'])
         image = label_service.generate_png_preview_base64(template, serializer.data)
         pdf = label_service.generate_pdf_preview_base64(template, serializer.data)
         return Response({'image': image, 'pdf': pdf})
@@ -84,7 +85,7 @@ class ProductLabelViewSet(ViewSet):
         products = (
             Product.objects
             .all()
-            .select_related('category', 'template')
+            .select_related('category',)
             .prefetch_related('org_standart__org_standart')
         )
 
@@ -92,7 +93,7 @@ class ProductLabelViewSet(ViewSet):
         for product in products:
             res = {
                 "id": product.pk,
-                "template": product.template.name,
+                "template": product.my_template.template.name,
                 "name": product.name,
                 "category": getattr(product.category, 'name', None),
             }
@@ -103,9 +104,8 @@ class ProductLabelViewSet(ViewSet):
 
     def retrieve(self, request, pk=None):
         product = get_object_or_404(Product, id=pk)
-        template = getattr(product, 'template', None)
         serializer = ProductPayloadSerializer(instance=product)
-        pdf = label_service.generate_pdf_preview_base64(template, serializer.data)
+        pdf = label_service.generate_pdf_preview_base64(product.my_template.template, serializer.data)
 
         result = {
             "name": product.name,
@@ -122,7 +122,7 @@ class ContractorLabelViewSet(ViewSet):
         contractors = (
             Contractor.objects
             .all()
-            .select_related('category', 'template')
+            .select_related('category')
             .prefetch_related('category')
         )
 
@@ -141,9 +141,8 @@ class ContractorLabelViewSet(ViewSet):
 
     def retrieve(self, request, pk=None):
         contractor = get_object_or_404(Contractor, id=pk)
-        template = getattr(contractor, 'template', None)
         serializer = ContractorPayloadSerializer(instance=contractor)
-        pdf = label_service.generate_pdf_preview_base64(template, serializer.data)
+        pdf = label_service.generate_pdf_preview_base64(contractor.my_template.template, serializer.data)
 
         result = {
             "name": contractor.name,

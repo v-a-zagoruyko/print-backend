@@ -115,6 +115,7 @@ class ProductTemplateListSerializer(serializers.Serializer):
     template = serializers.CharField()
     name = serializers.CharField()
     category = serializers.CharField()
+    edit_url = serializers.URLField(required=False, allow_blank=True)
 
 
 class ProductTemplateSerializer(serializers.Serializer):
@@ -128,6 +129,7 @@ class ContractorTemplateListSerializer(serializers.Serializer):
     name = serializers.CharField()
     street = serializers.CharField()
     category = serializers.CharField()
+    edit_url = serializers.URLField(required=False, allow_blank=True)
 
 
 class ContractorTemplateSerializer(serializers.Serializer):

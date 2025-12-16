@@ -17,6 +17,7 @@ from .serializers import (
     ContractorTemplateListSerializer
 )
 from .services.label_service import label_service
+from .utils.admin import admin_has_change_perm, admin_change_url
 
 logger = logging.getLogger(__name__)
 
@@ -89,13 +90,15 @@ class ProductLabelViewSet(ViewSet):
 
         results = []
         for product in products:
-
-            results.append({
+            res = {
                 "id": product.pk,
                 "template": product.template.name,
                 "name": product.name,
                 "category": getattr(product.category, 'name', None),
-            })
+            }
+            if admin_has_change_perm(request.user, Product):
+                res["edit_url"] = request.build_absolute_uri(admin_change_url(Product, product.pk))
+            results.append(res)
         return Response(ProductTemplateListSerializer(results, many=True).data)
 
     def retrieve(self, request, pk=None):
@@ -125,13 +128,15 @@ class ContractorLabelViewSet(ViewSet):
 
         results = []
         for contractor in contractors:
-
-            results.append({
+            res = {
                 "id": contractor.pk,
                 "name": contractor.name,
                 "street": contractor.street,
                 "category": getattr(contractor.category, 'name', None),
-            })
+            }
+            if admin_has_change_perm(request.user, Contractor):
+                res["edit_url"] = request.build_absolute_uri(admin_change_url(Contractor, contractor.pk))
+            results.append(res)
         return Response(ContractorTemplateListSerializer(results, many=True).data)
 
     def retrieve(self, request, pk=None):

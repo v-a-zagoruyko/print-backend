@@ -35,8 +35,9 @@ class InfoView(APIView):
             "is_superuser": request.user.is_superuser,
             "groups": list(request.user.groups.values_list('name', flat=True)),
         }
-        serializer = UserInfoModelSerializer(result)
-        return Response(serializer.data)
+        serializer = UserInfoModelSerializer(data=result)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.validated_data)
 
 
 class TemplateLabelViewSet(ViewSet):

@@ -37,7 +37,25 @@ class LabelService:
             fill=0,
         )
 
-    def draw_barcode(self, c: canvas.Canvas, barcode: str = "0000000000000000", spec: Dict[str, Any] = {}):
+    def _draw_barcode(self, c: canvas.Canvas, barcode: str = "0000000000000", spec: Dict[str, Any] = {}):
+        from reportlab.graphics.barcode import eanbc
+        from reportlab.graphics.shapes import Drawing
+        from reportlab.graphics import renderPDF
+
+        scale = 0.75
+        x = self.mm_to_pt(spec.get("x"))
+        y = self.mm_to_pt(spec.get("y"))
+        w = self.mm_to_pt(spec.get("width"))
+        h = self.mm_to_pt(spec.get("height"))
+
+        widget = eanbc.Ean13BarcodeWidget(barcode, barWidth=w / 95, barHeight=h)
+
+        drawing = Drawing(w * scale, h * scale, transform=[scale, 0, 0, scale, 0, 0])
+        drawing.add(widget)
+        page_h = c._pagesize[1]
+        renderPDF.draw(drawing, c, x, page_h - y - h)
+
+    def draw_barcode(self, c: canvas.Canvas, barcode: str = "0000000000000", spec: Dict[str, Any] = {}):
         img_bytes = self._get_barcode_bytes(barcode)
         img = ImageReader(BytesIO(img_bytes))
         c.drawImage(

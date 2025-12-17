@@ -184,8 +184,11 @@ class ContractorTemplate(models.Model):
     )
 
     class Meta:
-        verbose_name = "этикетка контрагента"
-        verbose_name_plural = "этикетки контрагентов"
+        verbose_name = "этикетка контрагента (template)"
+        verbose_name_plural = "этикетки контрагентов (template)"
+
+    def __str__(self):
+        return f"{self.contractor.category.name} {self.contractor.name if self.contractor.name else ''} ({self.template.name})"
 
 
 class ProductCategory(models.Model):
@@ -288,8 +291,11 @@ class ProductTemplate(models.Model):
     )
 
     class Meta:
-        verbose_name = "этикетка товара"
-        verbose_name_plural = "этикетки товаров"
+        verbose_name = "этикетка товара (template)"
+        verbose_name_plural = "этикетки товаров (template)"
+
+    def __str__(self):
+        return f"{self.product.name} ({self.template.name})"
 
 
 class ProductOrgStandart(models.Model):
@@ -309,3 +315,6 @@ class ProductOrgStandart(models.Model):
     class Meta:
         verbose_name = "стандарт организации (СТО)"
         verbose_name_plural = "стандарты организации (СТО)"
+
+    def __str__(self):
+        return f"{self.product.name} ({self.org_standart.name} СТО {self.org_standart.code})"

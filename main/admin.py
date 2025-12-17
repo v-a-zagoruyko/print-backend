@@ -94,6 +94,7 @@ class ProductTemplateInline(admin.TabularInline):
     model = ProductTemplate
     fields = ["template",]
     extra = 1
+    min_num = 1
     max_num = 1
 
 

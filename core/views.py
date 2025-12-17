@@ -42,6 +42,9 @@ def health(request):
 
 def post_login_redirect(request):
     dest = request.GET.get('url') or request.POST.get('url')
-    if dest and is_allowed_redirect_url(dest):
-        return redirect(dest)
-    return redirect('admin:index')
+    if not dest:
+        return redirect('admin:index')
+    if not is_allowed_redirect_url(dest):
+        logger.warning(f"Attempt to redirect on forbidden URL: {dest}, User: {request.user.username}")
+        return redirect('admin:index')
+    return redirect(dest)

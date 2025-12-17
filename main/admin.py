@@ -111,7 +111,7 @@ class ProductCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(SimpleHistoryAdmin):
-    list_display = ["name", "my_template", "category", "weight", "calories", "protein", "fat", "carbs", "barcode_preview",]
+    list_display = ["name", "entity_template", "category", "weight", "calories", "protein", "fat", "carbs", "barcode_preview",]
     fieldsets = (
         ("Шаблон этикетки", {
             "fields": ("label_preview",)
@@ -135,10 +135,10 @@ class ProductAdmin(SimpleHistoryAdmin):
     inlines = [ProductOrgStandartInline, ProductTemplateInline,]
 
     @admin.display(description="Шаблон")
-    def my_template(self, obj):
-        if not obj.my_template:
+    def entity_template(self, obj):
+        if not obj.entity_template:
             return "-"
-        return obj.my_template.template.name
+        return obj.entity_template.template.name
 
     @admin.display(description="")
     def barcode_preview(self, obj):

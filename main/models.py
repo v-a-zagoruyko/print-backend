@@ -159,7 +159,7 @@ class Contractor(models.Model):
         ordering = ["-category__name", "city", "street", "name",]
 
     @property
-    def my_template(self):
+    def entity_template(self):
         return self.contractor_template.first()
 
     def __str__(self):
@@ -266,7 +266,7 @@ class Product(models.Model):
         ordering = ["-category__name", "name",]
 
     @property
-    def my_template(self):
+    def entity_template(self):
         return self.product_template.first()
 
     def __str__(self):

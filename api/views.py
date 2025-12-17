@@ -94,7 +94,7 @@ class ProductLabelViewSet(ViewSet):
         for product in products:
             res = {
                 "id": product.pk,
-                "template": product.my_template.template.name,
+                "template": product.entity_template.template.name,
                 "name": product.name,
                 "category": getattr(product.category, 'name', None),
             }
@@ -106,7 +106,7 @@ class ProductLabelViewSet(ViewSet):
     def retrieve(self, request, pk=None):
         product = get_object_or_404(Product, id=pk)
         serializer = ProductPayloadSerializer(instance=product)
-        pdf = label_service.generate_pdf_preview_base64(product.my_template.template, serializer.data)
+        pdf = label_service.generate_pdf_preview_base64(product.entity_template.template, serializer.data)
 
         result = {
             "name": product.name,
@@ -143,7 +143,7 @@ class ContractorLabelViewSet(ViewSet):
     def retrieve(self, request, pk=None):
         contractor = get_object_or_404(Contractor, id=pk)
         serializer = ContractorPayloadSerializer(instance=contractor)
-        pdf = label_service.generate_pdf_preview_base64(contractor.my_template.template, serializer.data)
+        pdf = label_service.generate_pdf_preview_base64(contractor.entity_template.template, serializer.data)
 
         result = {
             "name": contractor.name,

@@ -151,12 +151,6 @@ class Contractor(models.Model):
         blank=True,
         help_text="Пример: Взрослая травматология",
     )
-    template = models.ForeignKey(
-        Template,
-        on_delete=models.PROTECT,
-        related_name="contractor",
-        verbose_name="Шаблон",
-    )
     history = HistoricalRecords()
 
     class Meta:
@@ -263,12 +257,6 @@ class Product(models.Model):
     caption = models.TextField(
         "Дополнительная информация",
         default="Хранить при температуре от 0 до +6°С. Продукция может содержать аллергены: сельдерей, соя, арахис, орехи, рыба, морепродукты, пшеница.",
-    )
-    template = models.ForeignKey(
-        Template,
-        on_delete=models.PROTECT,
-        related_name="product",
-        verbose_name="Шаблон",
     )
     history = HistoricalRecords()
 

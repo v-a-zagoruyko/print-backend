@@ -1,5 +1,5 @@
 import logging
-from django.contrib import admin, messages
+from django.contrib import admin
 from django.utils.safestring import mark_safe
 from django.db.models import JSONField
 from django_celery_beat import models

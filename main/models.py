@@ -166,7 +166,7 @@ class Contractor(models.Model):
         name = self.category.name
         if self.name:
             name += f": {self.name}"
-        return f"{name}, {self.street}"
+        return f"{name}, г. {self.city}, ул. {self.street}"
 
 
 class ContractorTemplate(models.Model):

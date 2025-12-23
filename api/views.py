@@ -85,7 +85,7 @@ class ProductLabelViewSet(ViewSet):
     def list(self, request):
         products = (
             Product.objects
-            .all()
+            .filter(status=Product.ProductStatus.AVAILABLE)
             .select_related('category',)
             .prefetch_related('org_standart__org_standart')
         )

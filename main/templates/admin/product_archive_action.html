@@ -1,0 +1,20 @@
+{% extends "admin/change_form.html" %}
+
+{% load static %}
+{% block submit_buttons_bottom %}
+{{ block.super }}
+{% if original and original.status == original.ProductStatus.CREATED %}
+<div class="submit-row"
+    style="padding-top: 0; background-color: transparent; border: 0; display: flex; align-items: flex-end;">
+    <input type="submit" class="button" style="background-color: #747474; margin-left: auto;" value="Архивировать"
+        id="_archive" name="_archive" />
+</div>
+{% endif %}
+{% if original and original.status == original.ProductStatus.ARCHIEVED %}
+<div class="submit-row"
+    style="padding-top: 0; background-color: transparent; border: 0; display: flex; align-items: flex-end;">
+    <input type="submit" class="button" style="background-color: #747474; margin-left: auto;" value="Восстановить"
+        id="_restore" name="_restore" />
+</div>
+{% endif %}
+{% endblock %}

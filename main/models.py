@@ -206,6 +206,16 @@ class ProductCategory(models.Model):
 
 
 class Product(models.Model):
+    class ProductStatus(models.TextChoices):
+        AVAILABLE = "CREATED", "Доступен"
+        ARCHIEVED = "ARCHIEVED", "Архивирован"
+
+    status = models.CharField(
+        "Статус",
+        max_length=150,
+        choices=ProductStatus.choices,
+        default=ProductStatus.AVAILABLE
+    )
     category = models.ForeignKey(
         ProductCategory,
         on_delete=models.PROTECT,

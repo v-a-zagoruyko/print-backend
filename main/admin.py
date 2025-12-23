@@ -1,11 +1,12 @@
 import logging
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.utils.safestring import mark_safe
 from django.db.models import JSONField
+from django.http import HttpResponseRedirect
 from django_celery_beat import models
 from django_json_widget.widgets import JSONEditorWidget
 from simple_history.admin import SimpleHistoryAdmin
-from .utils.admin import generate_barcode
+from .utils.admin import ProductTemplateFilter, generate_barcode
 from .models import BaseInfo, Template, OrgStandart, ContractorCategory, ContractorTemplate, Contractor, Product, ProductCategory, ProductTemplate, ProductOrgStandart
 
 logger = logging.getLogger(__name__)
@@ -112,13 +113,15 @@ class ProductCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(SimpleHistoryAdmin):
-    list_display = ["name", "entity_template", "category", "weight", "calories", "protein", "fat", "carbs", "barcode_preview",]
+    change_form_template = "admin/product_archive_action.html"
+
+    list_display = ["name", "status", "entity_template", "category", "weight", "calories", "protein", "fat", "carbs", "barcode_preview",]
     fieldsets = (
         ("Шаблон этикетки", {
             "fields": ("label_preview",)
         }),
         ("Основное", {
-            "fields": ("category", "name")
+            "fields": ("status", "category", "name")
         }),
         ("Состав и информация", {
             "fields": ("ingredients", "caption", "best_before")
@@ -130,10 +133,31 @@ class ProductAdmin(SimpleHistoryAdmin):
             "fields": ("barcode", "barcode_preview")
         }),
     )
-    readonly_fields = ["barcode_preview", "label_preview",]
+    readonly_fields = ["status", "barcode_preview", "label_preview",]
     search_fields = ["name", "barcode",]
-    list_filter = ["category",]
+    list_filter = ["category", "status", ProductTemplateFilter,]
     inlines = [ProductOrgStandartInline, ProductTemplateInline,]
+    actions = None
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        obj = self.get_object(request, object_id)
+        if not obj:
+            return
+        if '_archive' in request.POST:
+            if obj.status == Product.ProductStatus.AVAILABLE:
+                obj.status = Product.ProductStatus.ARCHIEVED
+                self.message_user(request, f"{obj} отправлен в архив", level=messages.WARNING)
+                logger.info(f"{obj} marked as archived")
+                obj.save(update_fields=["status"])
+                return HttpResponseRedirect(request.path)
+        elif '_restore' in request.POST:
+            if obj.status == Product.ProductStatus.ARCHIEVED:
+                obj.status = Product.ProductStatus.AVAILABLE
+                self.message_user(request, f"{obj} убран из архива")
+                logger.info(f"{obj} moved from archived")
+                obj.save(update_fields=["status"])
+                return HttpResponseRedirect(request.path)
+        return super().change_view(request, object_id, form_url, extra_context)
 
     @admin.display(description="Шаблон")
     def entity_template(self, obj):

@@ -37,7 +37,7 @@ class LabelService:
             fill=0,
         )
 
-    def _draw_barcode(self, c: canvas.Canvas, barcode: str = "0000000000000", spec: Dict[str, Any] = {}):
+    def draw_barcode_v2(self, c: canvas.Canvas, barcode: str = "0000000000000", spec: Dict[str, Any] = {}):
         from reportlab.graphics.barcode import eanbc
         from reportlab.graphics.shapes import Drawing
         from reportlab.graphics import renderPDF
@@ -226,6 +226,8 @@ class LabelService:
 
                 if spec.get("type", None) == "image" and "filename" in spec:
                     self.draw_img(c, spec)
+                elif spec.get("type", None) == "barcode_v2":
+                    self.draw_barcode_v2(c, value, spec)
                 elif spec.get("type", None) == "barcode":
                     self.draw_barcode(c, value, spec)
                 else:

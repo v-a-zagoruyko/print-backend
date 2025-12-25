@@ -122,6 +122,7 @@ class ProductTemplateSerializer(serializers.Serializer):
     name = serializers.CharField()
     category = serializers.CharField()
     pdf = serializers.CharField()
+    png_v2 = serializers.CharField()
 
 
 class ContractorTemplateListSerializer(serializers.Serializer):
@@ -136,3 +137,4 @@ class ContractorTemplateSerializer(serializers.Serializer):
     name = serializers.CharField()
     category = serializers.CharField()
     pdf = serializers.CharField()
+    png_v2 = serializers.CharField()

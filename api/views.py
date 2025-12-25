@@ -107,11 +107,13 @@ class ProductLabelViewSet(ViewSet):
         product = get_object_or_404(Product, id=pk)
         serializer = ProductPayloadSerializer(instance=product)
         pdf = label_service.generate_pdf_preview_base64(product.entity_template.template, serializer.data)
+        png_v2 = label_service.generate_png_preview_base64_v2(product.entity_template.template, serializer.data)
 
         result = {
             "name": product.name,
             "category": getattr(product.category, 'name', None),
             "pdf": pdf,
+            "png_v2": png_v2,
         }
         return Response(ProductTemplateSerializer(result).data)
 
@@ -144,10 +146,12 @@ class ContractorLabelViewSet(ViewSet):
         contractor = get_object_or_404(Contractor, id=pk)
         serializer = ContractorPayloadSerializer(instance=contractor)
         pdf = label_service.generate_pdf_preview_base64(contractor.entity_template.template, serializer.data)
+        png_v2 = label_service.generate_png_preview_base64_v2(contractor.entity_template.template, serializer.data)
 
         result = {
             "name": contractor.name,
             "category": getattr(contractor.category, 'name', None),
             "pdf": pdf,
+            "png_v2": png_v2,
         }
         return Response(ContractorTemplateSerializer(result).data)

@@ -8,6 +8,7 @@ from reportlab.platypus import Paragraph
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.utils import ImageReader
 from reportlab.lib.enums import TA_CENTER
+from PIL import Image, ImageDraw, ImageFont
 from pdf2image import convert_from_bytes
 from barcode import EAN13
 from barcode.writer import ImageWriter
@@ -26,6 +27,10 @@ class LabelService:
     @staticmethod
     def mm_to_pt(mm: float) -> float:
         return float(mm) * 2.834645669
+
+    @staticmethod
+    def mm_to_px(mm: float, dpi: int = 203) -> float:
+        return int(float(mm) * dpi / 25.4)
 
     def draw_debug(self, c: canvas.Canvas, spec: Dict[str, Any] = {}):
         page_w, page_h = c._pagesize
@@ -86,6 +91,107 @@ class LabelService:
             preserveAspectRatio=True,
             mask="auto",
         )
+
+    def draw_text_v3(
+        self,
+        c: canvas.Canvas,
+        d: ImageDraw.Draw,
+        text: str,
+        spec: Dict[str, Any] = {},
+        override_styles: Dict[str, Any] = {}
+    ):
+        from reportlab.pdfbase.pdfmetrics import getAscent
+
+        if not text:
+            return
+
+        style_name = spec.get("style", "product__body_1")
+        style_obj = self._build_style(style_name, override_styles)
+        options = spec.get("options", {})
+        p = Paragraph(text, style_obj)
+        page_h = c._pagesize[1]
+        textbox_w = self.mm_to_pt(spec.get("width"))
+        textbox_h = self.mm_to_pt(spec.get("height"))
+        w_wrap, h_wrap = p.wrap(textbox_w, textbox_h)
+        raw_styles = STYLES.get(style_name, STYLES["product__body_1"])
+
+        if h_wrap > textbox_h:
+            base_fontsize = raw_styles.get("fontSize")
+            current_fontsize = override_styles.get("fontSize", None) or base_fontsize
+            min_fontsize = options.get("min_fontsize", None)
+            logger.info(f"Text does not fit the textbox; reduce font or enlarge box:\r\n{text}")
+
+            if min_fontsize and min_fontsize < current_fontsize:
+                self.draw_text_v3(
+                    c,
+                    d,
+                    text,
+                    spec,
+                    {
+                        **override_styles,
+                        "fontSize": current_fontsize - 0.5,
+                        "leading": current_fontsize - 0.5
+                    }
+                )
+                return
+
+        x_pt = self.mm_to_pt(spec.get("x")) + raw_styles.get("leftIndent")
+        y_top = page_h - self.mm_to_pt(spec.get("y"))
+
+        x_px = max(int(x_pt * 203 / 72), 1)
+        y_px = max(int(self.mm_to_pt(spec.get("y")) * 203 / 72), 1)
+
+
+        font_name = p.style.fontName
+        font_size = p.style.fontSize
+        leading = font_size
+        # TODO: replace 1 with real font ascent
+        ascent = getattr(p.blPara, "ascent", 1)
+
+        if hasattr(style_obj, "vAlignment") and style_obj.vAlignment == "center":
+            ascent += (textbox_h - (leading * (len(p.blPara.lines) - 1) + font_size)) / 2
+
+        text_obj = c.beginText()
+        text_obj.setTextOrigin(x_pt, y_top - ascent)
+        text_obj.setFont(font_name, font_size)
+        text_obj.setLeading(font_size)
+        ww_font_size = max(int(font_size * 203 / 72), 1)
+        ww_font_name = font_name.lower().replace(" ", "_")
+        font = ImageFont.truetype(f"/app/main/static/fonts/{ww_font_name}.ttf", ww_font_size)
+
+        i = 0
+        if hasattr(style_obj, "alignment") and style_obj.alignment == TA_CENTER:
+            if isinstance(p.blPara.lines[0], tuple):
+                for line_width, words in p.blPara.lines:
+                    text_line = " ".join(words)
+                    offset = max(int((line_width) * 203 / 72), 1) / 2
+                    d.text((x_px + offset, y_px + (i * ww_font_size)), text_line, fill=0, font=font)
+                    text_obj.setTextOrigin(x_pt + offset, text_obj.getY())
+                    text_obj.textLine(text_line)
+                    i += 1
+            else:
+                for line in p.blPara.lines:
+                    text_line = "".join(frag.text for frag in line.words)
+                    offset = max(int((line.extraSpace / 2) * 203 / 72), 1)
+                    d.text((x_px + offset, y_px + (i * ww_font_size)), text_line, fill=0, font=font)
+                    text_obj.setTextOrigin(x_pt + offset, text_obj.getY())
+                    text_obj.textLine(text_line)
+                    i += 1
+        else:
+            if isinstance(p.blPara.lines[0], tuple):
+                for _, words in p.blPara.lines:
+                    text_line = " ".join(words)
+                    d.text((x_px, y_px + (i * ww_font_size)), text_line, fill=0, font=font)
+                    text_obj.textLine(text_line)
+                    i += 1
+            else:
+                for line in p.blPara.lines:
+                    text_line = "".join(frag.text for frag in line.words)
+                    d.text((x_px, y_px + (i * ww_font_size)), text_line, fill=0, font=font)
+                    text_obj.textLine(text_line)
+                    i += 1
+
+        c.drawText(text_obj)
 
     def draw_text_v2(
         self,
@@ -297,6 +403,45 @@ class LabelService:
         buf.close()
         return pdf_bytes
 
+    def _generate_label_v2(
+        self,
+        page_w_mm: float,
+        page_h_mm: float,
+        layout: Dict[str, Any],
+        payload: Dict[str, Any]
+    ) -> bytes:
+        c, buf = self._create_canvas(page_w_mm, page_h_mm)
+
+        img = Image.new("L", (self.mm_to_px(page_w_mm), self.mm_to_px(page_h_mm)), color=255)
+        draw = ImageDraw.Draw(img)
+
+        for key, spec in layout.items():
+            try:
+                value = payload.get(key)
+
+                if spec.get("debug", False):
+                    self.draw_debug(c, spec)
+
+                if spec.get("type", None) == "image" and "filename" in spec:
+                    self.draw_img(c, spec)
+                elif spec.get("type", None) == "barcode_v2":
+                    self.draw_barcode_v2(c, value, spec)
+                elif spec.get("type", None) == "barcode":
+                    self.draw_barcode(c, value, spec)
+                else:
+                    self.draw_text_v3(c, draw, value, spec)
+            except Exception as e:
+                logger.error(f"Error while drawing: {key}: {e}")
+
+        pdf_bytes = self._finalize_pdf(c, buf)
+
+        _buf = BytesIO()
+        img.save(_buf, format="PNG", dpi=(203, 203))
+        png_bytes = _buf.getvalue()
+        _buf.close()
+
+        return base64.b64encode(png_bytes).decode("utf-8")
+
     def _generate_label(
         self,
         page_w_mm: float,
@@ -327,7 +472,7 @@ class LabelService:
         pdf_bytes = self._finalize_pdf(c, buf)
         return pdf_bytes
 
-    def _pdf_to_png_base64(self, pdf_bytes: bytes, dpi: int = 200) -> str:
+    def _pdf_to_png_base64(self, pdf_bytes: bytes, dpi: int = 203) -> str:
         images = convert_from_bytes(pdf_bytes, dpi=dpi)
 
         if not images:
@@ -350,7 +495,7 @@ class LabelService:
 
         return base64.b64encode(png_bytes).decode("utf-8")
 
-    def generate_template_png_preview_base64(self, template, dpi: int = 200) -> str:
+    def generate_template_png_preview_base64(self, template, dpi: int = 203) -> str:
         payload = {k: k for k in template["elements"]}
         elements = {
             k: {kk: vv for kk, vv in v.items() if kk in ("x", "y", "style", "width", "height")} | {"debug": True}
@@ -363,8 +508,11 @@ class LabelService:
         pdf_bytes = self._generate_label(template.width, template.height, template.elements, payload)
         return base64.b64encode(pdf_bytes).decode("utf-8")
 
-    def generate_png_preview_base64(self, template: Template, payload, dpi: int = 200) -> str:
+    def generate_png_preview_base64(self, template: Template, payload, dpi: int = 203) -> str:
         pdf_bytes = self._generate_label(template.width, template.height, template.elements, payload)
         return self._pdf_to_png_base64(pdf_bytes, dpi=dpi)
+
+    def generate_png_preview_base64_v2(self, template: Template, payload, dpi: int = 203) -> str:
+        return self._generate_label_v2(template.width, template.height, template.elements, payload)
 
 label_service = LabelService()

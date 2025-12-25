@@ -39,7 +39,7 @@ def format_nutrition(base):
     protein = to_dec(base.get('protein', 0) or 0)
     fat = to_dec(base.get('fat', 0) or 0)
     carbs = to_dec(base.get('carbs', 0) or 0)
-    return f"{calories}К/{protein}Б/{fat}Ж/{carbs}У на 100&nbsp;гр."
+    return f"{calories}К/{protein}Б/{fat}Ж/{carbs}У на 100 гр."
 
 def format_dates(base, now = None):
     if now is None:

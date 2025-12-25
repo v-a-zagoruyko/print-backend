@@ -7,6 +7,7 @@ from reportlab.pdfgen import canvas
 from reportlab.platypus import Paragraph
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.utils import ImageReader
+from reportlab.lib.enums import TA_CENTER
 from pdf2image import convert_from_bytes
 from barcode import EAN13
 from barcode.writer import ImageWriter
@@ -42,15 +43,19 @@ class LabelService:
         from reportlab.graphics.shapes import Drawing
         from reportlab.graphics import renderPDF
 
-        scale = 0.75
         x = self.mm_to_pt(spec.get("x"))
         y = self.mm_to_pt(spec.get("y"))
         w = self.mm_to_pt(spec.get("width"))
         h = self.mm_to_pt(spec.get("height"))
 
-        widget = eanbc.Ean13BarcodeWidget(barcode, barWidth=w / 95, barHeight=h)
+        min_dpi = 203
+        raw_module = w / 95
+        module_px = max(1, round(raw_module * min_dpi / 72))
+        barWidth = module_px * 72 / min_dpi
 
-        drawing = Drawing(w * scale, h * scale, transform=[scale, 0, 0, scale, 0, 0])
+        widget = eanbc.Ean13BarcodeWidget(barcode, barWidth=barWidth, barHeight=h, humanReadable=True)
+
+        drawing = Drawing(w, h)
         drawing.add(widget)
         page_h = c._pagesize[1]
         renderPDF.draw(drawing, c, x, page_h - y - h)
@@ -81,6 +86,90 @@ class LabelService:
             preserveAspectRatio=True,
             mask="auto",
         )
+
+    def draw_text_v2(
+        self,
+        c: canvas.Canvas,
+        text: str,
+        spec: Dict[str, Any] = {},
+        override_styles: Dict[str, Any] = {}
+    ):
+        from reportlab.pdfbase.pdfmetrics import getAscent
+
+        if not text:
+            return
+
+        style_name = spec.get("style", "product__body_1")
+        style_obj = self._build_style(style_name, override_styles)
+        options = spec.get("options", {})
+        p = Paragraph(text, style_obj)
+        page_h = c._pagesize[1]
+        textbox_w = self.mm_to_pt(spec.get("width"))
+        textbox_h = self.mm_to_pt(spec.get("height"))
+        w_wrap, h_wrap = p.wrap(textbox_w, textbox_h)
+        raw_styles = STYLES.get(style_name, STYLES["product__body_1"])
+
+        if h_wrap > textbox_h:
+            base_fontsize = raw_styles.get("fontSize")
+            current_fontsize = override_styles.get("fontSize", None) or base_fontsize
+            min_fontsize = options.get("min_fontsize", None)
+            logger.info(f"Text does not fit the textbox; reduce font or enlarge box:\r\n{text}")
+
+            if min_fontsize and min_fontsize < current_fontsize:
+                self.draw_text_v2(
+                    c,
+                    text,
+                    spec,
+                    {
+                        **override_styles,
+                        "fontSize": current_fontsize - 0.5,
+                        "leading": current_fontsize - 0.5
+                    }
+                )
+                return
+
+        x_pt = self.mm_to_pt(spec.get("x")) + raw_styles.get("leftIndent")
+        y_top = page_h - self.mm_to_pt(spec.get("y"))
+
+
+        font_name = p.style.fontName
+        font_size = p.style.fontSize
+        leading = font_size
+        # TODO: replace 1 with real font ascent
+        ascent = getattr(p.blPara, "ascent", 1)
+
+        if hasattr(style_obj, "vAlignment") and style_obj.vAlignment == "center":
+            ascent += (textbox_h - (leading * (len(p.blPara.lines) - 1) + font_size)) / 2
+
+        text_obj = c.beginText()
+        text_obj.setTextOrigin(x_pt, y_top - ascent)
+        text_obj.setFont(font_name, font_size)
+        text_obj.setLeading(font_size)
+
+        if hasattr(style_obj, "alignment") and style_obj.alignment == TA_CENTER:
+            if isinstance(p.blPara.lines[0], tuple):
+                for line_width, words in p.blPara.lines:
+                    text_line = " ".join(words)
+                    offset = line_width / 2
+                    text_obj.setTextOrigin(x_pt + offset, text_obj.getY())
+                    text_obj.textLine(text_line)
+            else:
+                for line in p.blPara.lines:
+                    text_line = "".join(frag.text for frag in line.words)
+                    offset = line.extraSpace / 2
+                    text_obj.setTextOrigin(x_pt + offset, text_obj.getY())
+                    text_obj.textLine(text_line)
+        else:
+            if isinstance(p.blPara.lines[0], tuple):
+                for _, words in p.blPara.lines:
+                    text_line = " ".join(words)
+                    text_obj.textLine(text_line)
+            else:
+                for line in p.blPara.lines:
+                    text_line = "".join(frag.text for frag in line.words)
+                    text_obj.textLine(text_line)
+
+        c.drawText(text_obj)
 
     def draw_text(
         self,
@@ -198,7 +287,7 @@ class LabelService:
         page_w = self.mm_to_pt(page_w_mm)
         page_h = self.mm_to_pt(page_h_mm)
         buf = BytesIO()
-        c = canvas.Canvas(buf, pagesize=(page_w, page_h))
+        c = canvas.Canvas(buf, pagesize=(page_w, page_h), pageCompression=0, pdfVersion=(1, 4))
         return c, buf
 
     def _finalize_pdf(self, c: canvas.Canvas, buf: BytesIO) -> bytes:
@@ -231,7 +320,7 @@ class LabelService:
                 elif spec.get("type", None) == "barcode":
                     self.draw_barcode(c, value, spec)
                 else:
-                    self.draw_text(c, value, spec)
+                    self.draw_text_v2(c, value, spec)
             except Exception as e:
                 logger.error(f"Error while drawing: {key}: {e}")
 

@@ -403,45 +403,6 @@ class LabelService:
         buf.close()
         return pdf_bytes
 
-    def _generate_label_v2(
-        self,
-        page_w_mm: float,
-        page_h_mm: float,
-        layout: Dict[str, Any],
-        payload: Dict[str, Any]
-    ) -> bytes:
-        c, buf = self._create_canvas(page_w_mm, page_h_mm)
-
-        img = Image.new("L", (self.mm_to_px(page_w_mm), self.mm_to_px(page_h_mm)), color=255)
-        draw = ImageDraw.Draw(img)
-
-        for key, spec in layout.items():
-            try:
-                value = payload.get(key)
-
-                if spec.get("debug", False):
-                    self.draw_debug(c, spec)
-
-                if spec.get("type", None) == "image" and "filename" in spec:
-                    self.draw_img(c, spec)
-                elif spec.get("type", None) == "barcode_v2":
-                    self.draw_barcode_v2(c, value, spec)
-                elif spec.get("type", None) == "barcode":
-                    self.draw_barcode(c, value, spec)
-                else:
-                    self.draw_text_v3(c, draw, value, spec)
-            except Exception as e:
-                logger.error(f"Error while drawing: {key}: {e}")
-
-        pdf_bytes = self._finalize_pdf(c, buf)
-
-        _buf = BytesIO()
-        img.save(_buf, format="PNG", dpi=(203, 203))
-        png_bytes = _buf.getvalue()
-        _buf.close()
-
-        return base64.b64encode(png_bytes).decode("utf-8")
-
     def _generate_label(
         self,
         page_w_mm: float,
@@ -511,8 +472,5 @@ class LabelService:
     def generate_png_preview_base64(self, template: Template, payload, dpi: int = 203) -> str:
         pdf_bytes = self._generate_label(template.width, template.height, template.elements, payload)
         return self._pdf_to_png_base64(pdf_bytes, dpi=dpi)
-
-    def generate_png_preview_base64_v2(self, template: Template, payload, dpi: int = 203) -> str:
-        return self._generate_label_v2(template.width, template.height, template.elements, payload)
 
 label_service = LabelService()

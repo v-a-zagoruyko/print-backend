@@ -105,7 +105,7 @@ class ProductLabelViewSet(ViewSet):
 
     def retrieve(self, request, pk=None):
         product = get_object_or_404(Product, id=pk)
-        serializer = ProductPayloadSerializer(instance=product)
+        serializer = ProductPayloadSerializer(instance=product, context={'request': request})
         pdf = label_service.generate_pdf_preview_base64(product.entity_template.template, serializer.data)
 
         result = {

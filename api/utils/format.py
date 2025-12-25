@@ -1,6 +1,6 @@
 import json
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from main.models import BaseInfo, Template, OrgStandart, ContractorCategory
 
@@ -43,7 +43,11 @@ def format_nutrition(base):
 
 def format_dates(base, now = None):
     if now is None:
-        now = timezone.now() + timedelta(days=1)
+        now = timezone.now()
+        now = now + timedelta(days=1)
+    else:
+        dt_naive = datetime.strptime(now, "%Y-%m-%d")
+        now = timezone.make_aware(dt_naive, timezone.get_current_timezone())
     manufacture = f"Изготовлено: {now.strftime('%d.%m.%y')} 02:00"
     shelf_raw = base.get('best_before', 0)
     try:

@@ -16,7 +16,7 @@ from .utils.format import (
 
 
 class ProductRepresentationMixin:
-    def build_product_representation(self, base, instance=None):
+    def build_product_representation(self, base, instance=None, extra={}):
         result = {
             "name": base.get('name', "") or "",
             "weight": base.get('weight', "") or "",
@@ -25,9 +25,12 @@ class ProductRepresentationMixin:
         }
         result['ingredients'] = format_ingredients(base)
         result['nutrition'] = format_nutrition(base)
-        manufacture, expiry = format_dates(base)
+
+        date = extra.get("date")
+        manufacture, expiry = format_dates(base, date)
         result['manufacture_date'] = manufacture
         result['expiry_date'] = expiry
+
         if instance is None:
             orgs = extract_org_standarts_from_mapping(base if isinstance(base, dict) else {})
         else:
@@ -88,7 +91,11 @@ class ProductPayloadSerializer(serializers.Serializer, ProductRepresentationMixi
 
     def to_representation(self, instance):
         base = super().to_representation(instance)
-        return self.build_product_representation(base, instance)
+        request = self.context.get('request')
+        extra = {}
+        if request and request.GET.get('date', None):
+            extra["date"] = request.GET.get('date')
+        return self.build_product_representation(base, instance, extra)
 
 
 class ContractorPayloadSerializer(serializers.Serializer, ContractorRepresentationMixin):

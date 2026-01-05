@@ -1,11 +1,20 @@
 import logging
+import base64
+import urllib.parse
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse, HttpResponseBadRequest
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import serialization
 from main.models import BaseInfo, Template, Product, Contractor
+from core.settings import BASE_DIR, DEBUG
 from .serializers import (
     UserInfoModelSerializer,
     TemplatePayloadSerializer,
@@ -151,3 +160,25 @@ class ContractorLabelViewSet(ViewSet):
             "pdf": pdf,
         }
         return Response(ContractorTemplateSerializer(result).data)
+
+
+def qz_cert(request):
+    with open(BASE_DIR / "api/static/certs/digital-certificate.txt") as f:
+        resp = HttpResponse(f.read(), content_type="text/plain")
+    return resp
+
+
+@require_POST
+@csrf_exempt
+def qz_sign(request):
+    if DEBUG:
+        PRIVATE_KEY_PATH = BASE_DIR / "private-key.pem"
+    else:
+        PRIVATE_KEY_PATH = "/app/certs/private-key.pem"
+    to_sign = request.body
+    if not to_sign:
+        return HttpResponseBadRequest("Missing request")
+    with open(PRIVATE_KEY_PATH, "rb") as f:
+        key = serialization.load_pem_private_key(f.read(), password=None)
+    signature = key.sign(to_sign, padding.PKCS1v15(), hashes.SHA512())
+    return HttpResponse(base64.b64encode(signature).decode("ascii"), content_type="text/plain")

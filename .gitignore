@@ -45,6 +45,9 @@ docker-compose.override.yml
 docker-compose.override.yml.*
 docker-compose.override.*.yml
 
+# Certs
+*.pem
+
 # macOS
 .DS_Store
 

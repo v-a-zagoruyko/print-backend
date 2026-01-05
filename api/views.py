@@ -174,6 +174,7 @@ def qz_sign(request):
     if DEBUG:
         PRIVATE_KEY_PATH = BASE_DIR / "private-key.pem"
     else:
+        print('*'*100)
         PRIVATE_KEY_PATH = "/app/certs/private-key.pem"
     to_sign = request.body
     if not to_sign:

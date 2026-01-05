@@ -16,4 +16,5 @@ exec gunicorn core.wsgi:application \
     --access-logfile - \
     --error-logfile - \
     --log-level debug \
+    --capture-output \
     --user app --group app

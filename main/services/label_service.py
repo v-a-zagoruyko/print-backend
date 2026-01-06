@@ -13,7 +13,8 @@ from pdf2image import convert_from_bytes
 from barcode import EAN13
 from barcode.writer import ImageWriter
 from main.models import Template
-from api.utils.styles import STYLES
+from main.services.font_registry import FontRegistry
+from main.utils.label_styles import LABELS_STYLES
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ IMAGES_DIR = BASE_DIR / "static" / "img"
 
 class LabelService:
     def __init__(self):
-        pass
+        FontRegistry.register_fonts()
 
     @staticmethod
     def mm_to_pt(mm: float) -> float:
@@ -113,7 +114,7 @@ class LabelService:
         textbox_w = self.mm_to_pt(spec.get("width"))
         textbox_h = self.mm_to_pt(spec.get("height"))
         w_wrap, h_wrap = p.wrap(textbox_w, textbox_h)
-        raw_styles = STYLES.get(style_name, STYLES["product__body_1"])
+        raw_styles = LABELS_STYLES.get(style_name, LABELS_STYLES["product__body_1"])
 
         if h_wrap > textbox_h:
             base_fontsize = raw_styles.get("fontSize")
@@ -213,7 +214,7 @@ class LabelService:
         textbox_w = self.mm_to_pt(spec.get("width"))
         textbox_h = self.mm_to_pt(spec.get("height"))
         w_wrap, h_wrap = p.wrap(textbox_w, textbox_h)
-        raw_styles = STYLES.get(style_name, STYLES["product__body_1"])
+        raw_styles = LABELS_STYLES.get(style_name, LABELS_STYLES["product__body_1"])
 
         if h_wrap > textbox_h:
             base_fontsize = raw_styles.get("fontSize")
@@ -294,7 +295,7 @@ class LabelService:
         w_wrap, h_wrap = p.wrap(textbox_w, textbox_h)
 
         if h_wrap > textbox_h:
-            raw_styles = STYLES.get(style_name, STYLES["product__body_1"])
+            raw_styles = LABELS_STYLES.get(style_name, LABELS_STYLES["product__body_1"])
             base_fontsize = raw_styles.get("fontSize")
             current_fontsize = override_styles.get("fontSize", None) or base_fontsize
             min_fontsize = options.get("min_fontsize", None)
@@ -320,7 +321,7 @@ class LabelService:
     def draw_text_beta(self, c: canvas.Canvas, text: str, spec: dict, override_styles: dict = {}):
         style_name = spec.get("style", "product__body_1")
         options = spec.get("options", {})
-        raw_styles = STYLES.get(style_name, STYLES["product__body_1"])
+        raw_styles = LABELS_STYLES.get(style_name, LABELS_STYLES["product__body_1"])
         base_fontsize = raw_styles.get("fontSize")
         current_fontsize = override_styles.get("fontSize", base_fontsize)
         min_fontsize = options.get("min_fontsize", None)
@@ -362,7 +363,7 @@ class LabelService:
         frame.addFromList([kif], c)
 
     def _build_style(self, style_name: str, override: Dict[str, Any] = {}) -> ParagraphStyle:
-        raw = STYLES.get(style_name, STYLES["product__body_1"])
+        raw = LABELS_STYLES.get(style_name, LABELS_STYLES["product__body_1"])
         merged = {**raw, **(override or {})}
         return ParagraphStyle(style_name, **merged)
 
@@ -472,5 +473,22 @@ class LabelService:
     def generate_png_preview_base64(self, template: Template, payload, dpi: int = 203) -> str:
         pdf_bytes = self._generate_label(template.width, template.height, template.elements, payload)
         return self._pdf_to_png_base64(pdf_bytes, dpi=dpi)
+
+    def generate_barcode_preview_base64(self, barcode: str, dpi: int = 203) -> str:
+        code = barcode[:12]
+        buffer = BytesIO()
+        writer = ImageWriter()
+        writer.dpi = dpi
+        EAN13(code, writer=writer).write(
+            buffer,
+            options={
+                "quiet_zone": 0,
+                "write_text": True,
+                "foreground": "black",
+                "background": "white",
+                "module_width": 0.5,
+            },
+        )
+        return base64.b64encode(buffer.getvalue()).decode()
 
 label_service = LabelService()

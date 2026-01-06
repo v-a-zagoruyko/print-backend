@@ -3,20 +3,26 @@ from django.contrib import admin, messages
 from django.utils.safestring import mark_safe
 from django.db.models import JSONField
 from django.http import HttpResponseRedirect
-from django_celery_beat import models
 from django_json_widget.widgets import JSONEditorWidget
 from simple_history.admin import SimpleHistoryAdmin
-from .utils.admin import ProductTemplateFilter, generate_barcode
-from .models import BaseInfo, Template, OrgStandart, ContractorCategory, ContractorTemplate, Contractor, Product, ProductCategory, ProductTemplate, ProductOrgStandart
+from .services.label_service import label_service
+from .utils.admin import ProductTemplateFilter
+from .models import (
+    BaseInfo,
+    Template,
+    OrgStandart,
+    ContractorCategory,
+    ContractorTemplate,
+    Contractor,
+    Product,
+    ProductCategory,
+    ProductTemplate,
+    ProductOrgStandart
+)
 
 logger = logging.getLogger(__name__)
 
 admin.site.index_title = "Панель управления"
-
-
-@admin.register(BaseInfo)
-class BaseInfoAdmin(SimpleHistoryAdmin):
-    list_display = ["name", "address", "short_address", "phone_number",]
 
 
 @admin.register(Template)
@@ -43,12 +49,16 @@ class TemplateAdmin(SimpleHistoryAdmin):
 
 @admin.register(OrgStandart)
 class OrgStandartAdmin(SimpleHistoryAdmin):
-    list_display = ["name", "code",]
+
+    def has_module_permission(self, request):
+        return False
 
 
 @admin.register(ContractorCategory)
 class ContractorCategoryAdmin(SimpleHistoryAdmin):
-    list_display = ["name",]
+
+    def has_module_permission(self, request):
+        return False
 
 
 class ContractorTemplateInline(admin.TabularInline):
@@ -107,8 +117,9 @@ class ProductOrgStandartInline(admin.TabularInline):
 
 @admin.register(ProductCategory)
 class ProductCategoryAdmin(admin.ModelAdmin):
-    list_display = ["name",]
-    search_fields = ["name",]
+
+    def has_module_permission(self, request):
+        return False
 
 
 @admin.register(Product)
@@ -169,7 +180,7 @@ class ProductAdmin(SimpleHistoryAdmin):
     def barcode_preview(self, obj):
         if not obj.barcode:
             return "(нет штрихкода)"
-        return mark_safe(f'<img src="data:image/png;base64,{generate_barcode(obj.barcode)}" height="80"/>')
+        return mark_safe(f'<img src="data:image/png;base64,{label_service.generate_barcode_preview_base64(obj.barcode)}" height="80"/>')
 
     @admin.display(description="Этикетка")
     def label_preview(self, obj):

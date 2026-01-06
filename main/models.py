@@ -3,6 +3,7 @@ from django.core.validators import RegexValidator, MinValueValidator, MaxValueVa
 from simple_history.models import HistoricalRecords
 
 
+# TODO: Move to labels app
 class BaseInfo(models.Model):
     name = models.CharField(
         "Название",
@@ -84,6 +85,7 @@ class Template(models.Model):
         return self.name
 
 
+# TODO: Move to labels app
 class OrgStandart(models.Model):
     name = models.CharField(
         "Название",
@@ -105,6 +107,7 @@ class OrgStandart(models.Model):
         return f"{self.name} СТО {self.code}"
 
 
+# TODO: Move to labels app
 class ContractorCategory(models.Model):
     name = models.CharField(
         "Название",
@@ -113,13 +116,14 @@ class ContractorCategory(models.Model):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = "контрагент"
-        verbose_name_plural = "контрагенты"
+        verbose_name = "фирма-контрагент"
+        verbose_name_plural = "фирмы-контрагенты"
 
     def __str__(self):
         return self.name
 
 
+# TODO: Move to labels app
 class Contractor(models.Model):
     category = models.ForeignKey(
         ContractorCategory,
@@ -191,6 +195,7 @@ class ContractorTemplate(models.Model):
         return f"{self.contractor.category.name} {self.contractor.name if self.contractor.name else ''} ({self.template.name})"
 
 
+# TODO: Move to labels app
 class ProductCategory(models.Model):
     name = models.CharField(
         "Название",
@@ -205,6 +210,7 @@ class ProductCategory(models.Model):
         return self.name
 
 
+# TODO: Move to labels app
 class Product(models.Model):
     class ProductStatus(models.TextChoices):
         AVAILABLE = "CREATED", "Доступен"
@@ -308,6 +314,7 @@ class ProductTemplate(models.Model):
         return f"{self.product.name} ({self.template.name})"
 
 
+# TODO: Move to labels app
 class ProductOrgStandart(models.Model):
     product = models.ForeignKey(
         Product,

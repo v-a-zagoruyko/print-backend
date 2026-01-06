@@ -1,22 +1,15 @@
 import logging
-import base64
-import urllib.parse
-from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse, HttpResponseBadRequest
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives import serialization
-from main.models import BaseInfo, Template, Product, Contractor
-from core.settings import BASE_DIR, DEBUG
+from main.models import Template, Product, Contractor
+from main.services.label_service import label_service
+from main.utils.admin import admin_has_change_perm, admin_change_url
+from main.utils.extractors import extract_template_from_mapping
+from api.common.permissions import IsPrintOperator, IsContractor
 from .serializers import (
-    UserInfoModelSerializer,
     TemplatePayloadSerializer,
     ProductPayloadSerializer,
     ContractorPayloadSerializer,
@@ -25,38 +18,13 @@ from .serializers import (
     ContractorTemplateSerializer,
     ContractorTemplateListSerializer
 )
-from .services.label_service import label_service
-from .permissions import IsPrintOperator, IsContractor
-from .utils.admin import admin_has_change_perm, admin_change_url
-from .utils.format import extract_template_from_mapping
-
-logger = logging.getLogger(__name__)
-
-
-class InfoView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        info = BaseInfo.get_solo()
-        if not info:
-            return Response({}, status=404)
-        result = {
-            "company_name": info.name,
-            "username": request.user.username,
-            "is_staff": request.user.is_staff,
-            "is_superuser": request.user.is_superuser,
-            "groups": list(request.user.groups.values_list('name', flat=True)),
-        }
-        serializer = UserInfoModelSerializer(data=result)
-        serializer.is_valid(raise_exception=True)
-        return Response(serializer.validated_data)
 
 
 class TemplateLabelViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=['post'], url_path='template')
-    def template(self, request):
+    @action(detail=False, methods=['post'], url_path='layout')
+    def layout(self, request):
         serializer = TemplatePayloadSerializer(instance=request.data)
         image = label_service.generate_template_png_preview_base64(serializer.data)
         return Response({'image': image})
@@ -71,8 +39,7 @@ class TemplateLabelViewSet(ViewSet):
             return Response({'error': 'Missing field: template'}, status=400)
 
         image = label_service.generate_png_preview_base64(template, serializer.data)
-        pdf = label_service.generate_pdf_preview_base64(template, serializer.data)
-        return Response({'image': image, 'pdf': pdf})
+        return Response({'image': image})
 
     @action(detail=False, methods=['post'], url_path='contractor')
     def contractor(self, request):
@@ -84,8 +51,7 @@ class TemplateLabelViewSet(ViewSet):
             return Response({'error': 'Missing field: template'}, status=400)
 
         image = label_service.generate_png_preview_base64(template, serializer.data)
-        pdf = label_service.generate_pdf_preview_base64(template, serializer.data)
-        return Response({'image': image, 'pdf': pdf})
+        return Response({'image': image})
 
 
 class ProductLabelViewSet(ViewSet):
@@ -160,25 +126,3 @@ class ContractorLabelViewSet(ViewSet):
             "pdf": pdf,
         }
         return Response(ContractorTemplateSerializer(result).data)
-
-
-def qz_cert(request):
-    with open(BASE_DIR / "api/static/certs/digital-certificate.txt") as f:
-        resp = HttpResponse(f.read(), content_type="text/plain")
-    return resp
-
-
-@require_POST
-@csrf_exempt
-def qz_sign(request):
-    if DEBUG:
-        PRIVATE_KEY_PATH = BASE_DIR / "private-key.pem"
-    else:
-        PRIVATE_KEY_PATH = "/app/certs/private-key.pem"
-    to_sign = request.body
-    if not to_sign:
-        return HttpResponseBadRequest("Missing request")
-    with open(PRIVATE_KEY_PATH, "rb") as f:
-        key = serialization.load_pem_private_key(f.read(), password=None)
-    signature = key.sign(to_sign, padding.PKCS1v15(), hashes.SHA512())
-    return HttpResponse(base64.b64encode(signature).decode("ascii"), content_type="text/plain")

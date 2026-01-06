@@ -1,13 +1,15 @@
 from rest_framework import serializers
 from main.models import BaseInfo, Product, Contractor
-from .utils.format import (
+from main.utils.format import (
     to_dec,
-    safe_load_json,
     format_ingredients,
     format_nutrition,
     format_dates,
     format_company_info,
     format_company_short_info,
+)
+from main.utils.extractors import (
+    extract_json,
     extract_org_standarts_from_mapping,
     extract_org_standarts_from_instance,
     extract_contractor_from_mapping,
@@ -73,7 +75,7 @@ class TemplatePayloadSerializer(serializers.Serializer):
         return {
             "width": to_dec(base.get('width', 0) or 0),
             "height": to_dec(base.get('height', 0) or 0),
-            "elements": safe_load_json(base.get('elements', '{}')),
+            "elements": extract_json(base.get('elements', '{}')),
         }
 
 
@@ -107,14 +109,6 @@ class ContractorPayloadSerializer(serializers.Serializer, ContractorRepresentati
     def to_representation(self, instance):
         base = super().to_representation(instance)
         return self.build_contractor_representation(base, instance)
-
-
-class UserInfoModelSerializer(serializers.Serializer):
-    company_name = serializers.CharField()
-    username = serializers.CharField()
-    is_staff = serializers.BooleanField()
-    is_superuser = serializers.BooleanField()
-    groups = serializers.ListField(child=serializers.CharField())
 
 
 class ProductTemplateListSerializer(serializers.Serializer):

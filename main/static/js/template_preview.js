@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updatePreview = async () => {
         const payload = getValues(form);
-        const response = await fetch('/api/label/preview/template/', {
+        const response = await fetch('/api/v1/labels/template/layout/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

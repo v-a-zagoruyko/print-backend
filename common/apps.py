@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class ApiConfig(AppConfig):
+class CommonConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "api"
-    verbose_name = "API"
+    name = "common"
+    verbose_name = "Основное"

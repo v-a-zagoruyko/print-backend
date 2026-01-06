@@ -8,7 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
     img.style.maxHeight = 'auto';
     container.appendChild(img);
 
-    updateImagePreview('/api/label/preview/product/', form, img);
+    updateImagePreview("/api/v1/labels/template/product/", form, img);
 
-    form.addEventListener('input', () => updateImagePreview('/api/label/preview/product/', form, img));
+    form.addEventListener("input", () =>
+      updateImagePreview("/api/v1/labels/template/product/", form, img)
+    );
 });

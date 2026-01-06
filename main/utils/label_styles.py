@@ -1,7 +1,7 @@
 from reportlab.lib.enums import TA_LEFT, TA_CENTER
 from reportlab.lib import colors
 
-STYLES = {
+LABELS_STYLES = {
     "contractor__title": {
         "fontName": "Tahoma Bold",
         "fontSize": 18,

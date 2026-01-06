@@ -63,7 +63,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "core",
     "main",
-    "api",
+    "common",
+    "orders",
 ]
 
 # -------------------------

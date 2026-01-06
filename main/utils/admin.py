@@ -1,9 +1,8 @@
 import base64
-from django.contrib.admin import SimpleListFilter
 from io import BytesIO
-from main.models import Template
-from barcode import EAN13
-from barcode.writer import ImageWriter
+from django.contrib.admin import SimpleListFilter
+from django.urls import reverse
+from main.models import Template, Product, Contractor
 
 
 class ProductTemplateFilter(SimpleListFilter):
@@ -25,19 +24,11 @@ class ProductTemplateFilter(SimpleListFilter):
             )
         return queryset
 
-def generate_barcode(barcode: str) -> str:
-    code = barcode[:12]
-    buffer = BytesIO()
-    writer = ImageWriter()
-    writer.dpi = 300
-    EAN13(code, writer=writer).write(
-        buffer,
-        options={
-            "quiet_zone": 0,
-            "write_text": True,
-            "foreground": "black",
-            "background": "white",
-            "module_width": 0.5,
-        },
+def admin_has_change_perm(user, model):
+    return user.has_perm(f"{model._meta.app_label}.change_{model._meta.model_name}")
+
+def admin_change_url(model, pk):
+    return reverse(
+        f"admin:{model._meta.app_label}_{model._meta.model_name}_change",
+        args=[pk]
     )
-    return base64.b64encode(buffer.getvalue()).decode()

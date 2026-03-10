@@ -9,23 +9,15 @@ os.environ.setdefault("CELERY_BROKER_URL", "redis://localhost:6379/0")
 os.environ.setdefault("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 os.environ.setdefault("CELERY_TASK_ALWAYS_EAGER", "True")
 
-# DB env vars are required by core.settings even if we override DATABASES below.
-os.environ.setdefault("POSTGRES_DB", "testdb")
-os.environ.setdefault("POSTGRES_USER", "testuser")
-os.environ.setdefault("POSTGRES_PASSWORD", "testpass")
+# Default local/CI DB creds (match docker-compose/CI defaults).
+os.environ.setdefault("POSTGRES_DB", "printdb")
+os.environ.setdefault("POSTGRES_USER", "print_user")
+os.environ.setdefault("POSTGRES_PASSWORD", "print_pass")
 os.environ.setdefault("POSTGRES_HOST", "localhost")
-os.environ.setdefault("POSTGRES_PORT", "5432")
+os.environ.setdefault("POSTGRES_PORT", "15432")
 
 from .settings import *  # noqa: F403
 
-
-# Use sqlite for unit/API tests by default.
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",
-    }
-}
 
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.MD5PasswordHasher",

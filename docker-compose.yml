@@ -29,13 +29,13 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "15432:5432"
 
   redis:
     image: redis:7
     restart: always
     ports:
-      - "6379:6379"
+      - "16379:6379"
 
   celery:
     build: .

@@ -21,6 +21,12 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env.bool("DJANGO_DEBUG")
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 
+# QZ Tray signing
+QZ_PRIVATE_KEY_PATH = env(
+    "QZ_PRIVATE_KEY_PATH",
+    default=str(BASE_DIR / "private-key.pem") if DEBUG else "/app/certs/private-key.pem",
+)
+
 # -------------------------
 # DATABASE
 # -------------------------

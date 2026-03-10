@@ -25,3 +25,10 @@ def other_contractor_user(db, contractor_group):
     user.groups.add(contractor_group)
     return user
 
+
+@pytest.fixture
+def print_operator_user(db, print_operator_group):
+    user = User.objects.create_user(username="print_operator", password="pass")
+    user.groups.add(print_operator_group)
+    return user
+

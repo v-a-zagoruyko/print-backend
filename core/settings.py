@@ -154,10 +154,12 @@ CORS_ALLOW_CREDENTIALS = True
 if DEBUG:
     CORS_ALLOWED_ORIGINS = [
         "http://front.local.molodcy:5173",
+        "http://order.local.molodcy:5174",
     ]
 
     CSRF_TRUSTED_ORIGINS = [
         "http://front.local.molodcy:5173",
+        "http://order.local.molodcy:5174",
     ]
 
     SESSION_COOKIE_DOMAIN = ".local.molodcy"
@@ -188,6 +190,10 @@ else:
         "https://xn--80aj3aox6a.xn----9sbkcordhnfb1hra5ce.xn--p1ai",
         "https://www.печать.большие-молодцы.рф",
         "https://www.xn--80aj3aox6a.xn----9sbkcordhnfb1hra5ce.xn--p1ai",
+        "https://заявка.большие-молодцы.рф",
+        "https://xn--80aafsr8j.xn----9sbkcordhnfb1hra5ce.xn--p1ai",
+        "https://www.заявка.большие-молодцы.рф",
+        "https://www.xn--80aafsr8j.xn----9sbkcordhnfb1hra5ce.xn--p1ai",
     ]
     CSRF_TRUSTED_ORIGINS = [
         "https://большие-молодцы.рф",
@@ -202,6 +208,10 @@ else:
         "https://xn--80aj3aox6a.xn----9sbkcordhnfb1hra5ce.xn--p1ai",
         "https://www.печать.большие-молодцы.рф",
         "https://www.xn--80aj3aox6a.xn----9sbkcordhnfb1hra5ce.xn--p1ai",
+        "https://заявка.большие-молодцы.рф",
+        "https://xn--80aafsr8j.xn----9sbkcordhnfb1hra5ce.xn--p1ai",
+        "https://www.заявка.большие-молодцы.рф",
+        "https://www.xn--80aafsr8j.xn----9sbkcordhnfb1hra5ce.xn--p1ai",
     ]
 
 # -------------------------

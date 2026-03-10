@@ -49,6 +49,8 @@ def format_dates(base, now = None):
 
 def format_company_info():
     company = BaseInfo.get_solo()
+    if not company:
+        return ""
     return (
         f"Изготовитель: {company.name}<br />"
         f"Адрес производства: {company.address}<br />"
@@ -57,6 +59,8 @@ def format_company_info():
 
 def format_company_short_info():
     company = BaseInfo.get_solo()
+    if not company:
+        return ""
     return (
         f"{company.name}<br />"
         f"{company.short_address}"

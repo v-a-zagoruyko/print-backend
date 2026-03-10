@@ -1,4 +1,5 @@
 import logging
+
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -8,7 +9,7 @@ from main.models import Template, Product, Contractor
 from main.services.label_service import label_service
 from main.utils.admin import admin_has_change_perm, admin_change_url
 from main.utils.extractors import extract_template_from_mapping
-from api.common.permissions import IsPrintOperator, IsContractor
+from api.common.permissions import IsPrintOperator
 from .serializers import (
     TemplatePayloadSerializer,
     ProductPayloadSerializer,
@@ -18,6 +19,8 @@ from .serializers import (
     ContractorTemplateSerializer,
     ContractorTemplateListSerializer
 )
+
+logger = logging.getLogger(__name__)
 
 
 class TemplateLabelViewSet(ViewSet):

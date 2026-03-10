@@ -100,6 +100,25 @@ def test_product_label_retrieve_returns_pdf(client, print_operator_user, product
     assert resp.json()["pdf"] == "pdfb64"
 
 
+def test_product_label_retrieve_passes_date_to_payload(client, print_operator_user, product_with_template, monkeypatch):
+    from main.services import label_service as label_service_module
+
+    captured = {}
+
+    def _fake(template, payload):
+        captured["payload"] = payload
+        return "pdfb64"
+
+    monkeypatch.setattr(label_service_module.label_service, "generate_pdf_preview_base64", _fake)
+
+    client.force_login(print_operator_user)
+    resp = client.get(f"/api/v1/labels/product/{product_with_template.id}/?date=2026-03-10")
+    assert resp.status_code == 200
+    payload = captured["payload"]
+    assert payload["manufacture_date"] == "Изготовлено: 10.03.26 02:00"
+    assert payload["expiry_date"] == "Употребить до: 13.03.26 02:00"
+
+
 def test_contractor_label_list_returns_contractors(client, print_operator_user, contractor_with_template):
     client.force_login(print_operator_user)
     resp = client.get("/api/v1/labels/contractor/")

@@ -28,20 +28,38 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/print-backend:latest
 
-  deploy:
+  # deploy-bolshie-molodcy:
+  #   needs: build-and-push
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Deploy via SSH (bolshie-molodcy)
+  #       uses: appleboy/ssh-action@v0.1.8
+  #       with:
+  #         host: ${{ secrets.SSH_HOST }}
+  #         username: ${{ secrets.SSH_USER }}
+  #         key: ${{ secrets.SSH_KEY }}
+  #         port: ${{ secrets.SSH_PORT }}
+  #         passphrase: ''
+  #         script: |
+  #           cd /srv/print-backend
+  #           docker compose pull
+  #           docker compose up -d --remove-orphans
+  #           docker image prune -f
+
+  deploy-collective:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH
+      - name: Deploy via SSH (collective)
         uses: appleboy/ssh-action@v0.1.8
         with:
-          host: ${{ secrets.SSH_HOST }}
+          host: ${{ secrets.SSH_HOST_COLLECTIVE }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           passphrase: ''
           script: |
-            cd /srv/print-backend
+            cd /srv/print-backend-collective
             docker compose pull
             docker compose up -d --remove-orphans
             docker image prune -f

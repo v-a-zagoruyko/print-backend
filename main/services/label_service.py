@@ -427,7 +427,8 @@ class LabelService:
                 elif spec.get("type", None) == "barcode":
                     self.draw_barcode(c, value, spec)
                 else:
-                    self.draw_text_v2(c, value, spec)
+                    override_styles = spec.get("override_styles", {})
+                    self.draw_text_v2(c, value, spec, override_styles)
             except Exception as e:
                 logger.error(f"Error while drawing: {key}: {e}")
 

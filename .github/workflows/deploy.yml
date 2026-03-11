@@ -59,7 +59,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           passphrase: ''
           script: |
-            cd /srv/print-backend-collective
+            cd /srv/print-backend
             docker compose pull
             docker compose up -d --remove-orphans
             docker image prune -f

@@ -174,11 +174,12 @@ if DEBUG:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 else:
-    SESSION_COOKIE_DOMAIN = ".xn----9sbkcordhnfb1hra5ce.xn--p1ai"
+    HOST_DOMAIN = env("HOST_DOMAIN", None)
+    SESSION_COOKIE_DOMAIN = HOST_DOMAIN
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = "None"
 
-    CSRF_COOKIE_DOMAIN = ".xn----9sbkcordhnfb1hra5ce.xn--p1ai"
+    CSRF_COOKIE_DOMAIN = HOST_DOMAIN
     CSRF_COOKIE_SECURE = True
     CSRF_COOKIE_SAMESITE = "None"
 

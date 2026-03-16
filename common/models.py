@@ -6,6 +6,7 @@ from main.models import (
     ProductOrgStandart,
     ProductCategory,
     Product,
+    ProductIngredient,
 )
 
 
@@ -58,3 +59,10 @@ class ProductProxy(Product):
         verbose_name = "товар"
         verbose_name_plural = "товары"
         ordering = ["-category__name", "name",]
+
+
+class ProductIngredientProxy(ProductIngredient):
+    class Meta:
+        proxy = True
+        verbose_name = "ингредиент товара"
+        verbose_name_plural = "ингредиенты товаров"

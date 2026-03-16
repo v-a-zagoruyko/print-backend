@@ -195,16 +195,54 @@ class ContractorTemplate(models.Model):
         return f"{self.contractor.category.name} {self.contractor.name if self.contractor.name else ''} ({self.template.name})"
 
 
-# TODO: Move to labels app
-class ProductCategory(models.Model):
+class Workshop(models.Model):
     name = models.CharField(
         "Название",
         max_length=128,
     )
 
     class Meta:
+        verbose_name = "цех"
+        verbose_name_plural = "цеха"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class ProductCategory(models.Model):
+    name = models.CharField(
+        "Название",
+        max_length=128,
+    )
+    workshop = models.ForeignKey(
+        Workshop,
+        on_delete=models.PROTECT,
+        related_name="product_categories",
+        verbose_name="Цех",
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
         verbose_name = "категория товара"
         verbose_name_plural = "категории товаров"
+
+    def __str__(self):
+        return self.name
+
+
+class Ingredient(models.Model):
+    name = models.CharField(
+        "Название",
+        max_length=128,
+        unique=True,
+    )
+
+    class Meta:
+        verbose_name = "ингредиент"
+        verbose_name_plural = "ингредиенты"
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
@@ -277,6 +315,13 @@ class Product(models.Model):
         "Дополнительная информация",
         default="Хранить при температуре от 0 до +6°С. Продукция может содержать аллергены: сельдерей, соя, арахис, орехи, рыба, морепродукты, пшеница.",
     )
+    ingredients_m2m = models.ManyToManyField(
+        Ingredient,
+        through="ProductIngredient",
+        related_name="products",
+        verbose_name="Ингредиенты",
+        blank=True,
+    )
     history = HistoricalRecords()
 
     class Meta:
@@ -290,6 +335,37 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ProductIngredient(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="product_ingredients",
+        verbose_name="Товар",
+    )
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.PROTECT,
+        related_name="product_ingredients",
+        verbose_name="Ингредиент",
+    )
+    weight_grams = models.PositiveIntegerField(
+        "Вес, г",
+    )
+
+    class Meta:
+        verbose_name = "ингредиент товара"
+        verbose_name_plural = "ингредиенты товаров"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product", "ingredient"],
+                name="uniq_product_ingredient",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.product.name}: {self.ingredient.name} ({self.weight_grams} г)"
 
 
 class ProductTemplate(models.Model):
@@ -314,7 +390,6 @@ class ProductTemplate(models.Model):
         return f"{self.product.name} ({self.template.name})"
 
 
-# TODO: Move to labels app
 class ProductOrgStandart(models.Model):
     product = models.ForeignKey(
         Product,

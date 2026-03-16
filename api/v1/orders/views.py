@@ -1,15 +1,42 @@
 from rest_framework.viewsets import ViewSet
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from main.models import Product
 from orders.models import ContractorUser, ContractorOrder
 from api.common.permissions import IsContractor
 from .serializers import (
+    ContractorUserSerializer,
+    ProductDetailSerializer,
     ContractorOrderListSerializer,
     ContractorOrderDetailSerializer,
     ContractorOrderCreateOrUpdateSerializer,
     OrderDateQuerySerializer,
 )
+
+
+class ContractorUserListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        users = ContractorUser.objects.filter(
+            user=request.user,
+            status=ContractorUser.Status.ACTIVE,
+        )
+        serializer = ContractorUserSerializer(users, many=True)
+        return Response(serializer.data)
+
+
+class ProductListView(APIView):
+    permission_classes = [IsAuthenticated, IsContractor]
+
+    def get(self, request):
+        products = Product.objects.filter(
+            status=Product.ProductStatus.AVAILABLE,
+        ).order_by("name")
+        serializer = ProductDetailSerializer(products, many=True)
+        return Response(serializer.data)
 
 
 class ContractorOrderViewSet(ViewSet):

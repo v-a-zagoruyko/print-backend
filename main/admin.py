@@ -17,7 +17,10 @@ from .models import (
     Product,
     ProductCategory,
     ProductTemplate,
-    ProductOrgStandart
+    ProductOrgStandart,
+    Ingredient,
+    ProductIngredient,
+    Workshop,
 )
 
 logger = logging.getLogger(__name__)
@@ -115,8 +118,35 @@ class ProductOrgStandartInline(admin.TabularInline):
     extra = 1
 
 
+class ProductIngredientInline(admin.TabularInline):
+    model = ProductIngredient
+    fields = ["ingredient", "weight_grams"]
+    extra = 1
+
+
 @admin.register(ProductCategory)
 class ProductCategoryAdmin(admin.ModelAdmin):
+
+    def has_module_permission(self, request):
+        return False
+
+
+@admin.register(Ingredient)
+class IngredientAdmin(admin.ModelAdmin):
+
+    def has_module_permission(self, request):
+        return False
+
+
+@admin.register(ProductIngredient)
+class ProductIngredientAdmin(admin.ModelAdmin):
+
+    def has_module_permission(self, request):
+        return False
+
+
+@admin.register(Workshop)
+class WorkshopAdmin(admin.ModelAdmin):
 
     def has_module_permission(self, request):
         return False
@@ -147,7 +177,7 @@ class ProductAdmin(SimpleHistoryAdmin):
     readonly_fields = ["status", "barcode_preview", "label_preview",]
     search_fields = ["name", "barcode",]
     list_filter = ["category", "status", ProductTemplateFilter,]
-    inlines = [ProductOrgStandartInline, ProductTemplateInline,]
+    inlines = [ProductOrgStandartInline, ProductTemplateInline, ProductIngredientInline,]
     actions = None
 
     def change_view(self, request, object_id, form_url='', extra_context=None):

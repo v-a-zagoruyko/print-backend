@@ -11,7 +11,8 @@ from .models import (
     OrgStandartProxy,
     ProductOrgStandartProxy,
     ProductCategoryProxy,
-    ProductProxy
+    ProductProxy,
+    ProductIngredientProxy,
 )
 
 logger = logging.getLogger(__name__)
@@ -53,6 +54,12 @@ class ProductOrgStandartProxyInline(admin.TabularInline):
     extra = 1
 
 
+class ProductIngredientProxyInline(admin.TabularInline):
+    model = ProductIngredientProxy
+    fields = ["ingredient", "weight_grams"]
+    extra = 1
+
+
 @admin.register(ProductCategoryProxy)
 class ProductCategoryProxyAdmin(admin.ModelAdmin):
     list_display = ["name",]
@@ -81,7 +88,7 @@ class ProductProxyAdmin(SimpleHistoryAdmin):
     readonly_fields = ["status", "barcode_preview",]
     search_fields = ["name", "barcode",]
     list_filter = ["category", "status"]
-    inlines = [ProductOrgStandartProxyInline,]
+    inlines = [ProductOrgStandartProxyInline, ProductIngredientProxyInline,]
     actions = None
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
@@ -109,3 +116,10 @@ class ProductProxyAdmin(SimpleHistoryAdmin):
         if not obj.barcode:
             return "(нет штрихкода)"
         return mark_safe(f'<img src="data:image/png;base64,{label_service.generate_barcode_preview_base64(obj.barcode)}" height="80"/>')
+
+
+@admin.register(ProductIngredientProxy)
+class ProductIngredientProxyAdmin(SimpleHistoryAdmin):
+
+    def has_module_permission(self, request):
+        return False

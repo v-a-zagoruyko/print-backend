@@ -27,9 +27,11 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 
 
 class ContractorUserSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source="__str__", read_only=True)
+
     class Meta:
         model = ContractorUser
-        fields = ("id",)
+        fields = ("id", "name",)
 
 
 class ContractorOrderItemSerializer(serializers.ModelSerializer):
@@ -79,9 +81,13 @@ class ContractorOrderCreateOrUpdateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context.get("request")
-        items_data = validated_data.pop("items")
+        raw_items_data = validated_data.pop("items")
+        items_data = [item for item in raw_items_data if item.get("quantity", 0) > 0]
         contractor_user_id = validated_data.pop("contractor_user_id")
         date = validated_data.pop("date", None)
+
+        if not items_data:
+            raise ValidationError("Нельзя создать заказ без позиций с количеством больше нуля")
 
         if date is None:
             date = self.context.get("date") or timezone.localdate()

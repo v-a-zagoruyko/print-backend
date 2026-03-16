@@ -1,10 +1,11 @@
 import logging
 from urllib.parse import quote
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from simple_history.admin import SimpleHistoryAdmin
 from .services.order_excel_service import OrderExcelService
+from .services.order_ingredients_excel_service import OrderIngredientsExcelService
 from .models import ContractorUser, ContractorOrder, ContractorOrderItem, OrderSupply
 from .forms import OrderSupplyForm
 
@@ -82,6 +83,31 @@ class OrderSupplyAdmin(SimpleHistoryAdmin):
             return
         if '_order_excel_download' in request.POST:
             content, filename = OrderExcelService(obj).generate_xlsx_bytes()
+            response = HttpResponse(
+                content,
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = f"attachment; filename*=UTF-8''{quote(filename)}"
+            return response
+        if '_order_ingredients_excel_download' in request.POST:
+            (
+                content,
+                filename,
+                products_missing_workshop,
+                products_missing_ingredients,
+            ) = OrderIngredientsExcelService(obj).generate_xlsx_with_warnings()
+            if products_missing_workshop:
+                messages.warning(
+                    request,
+                    "Следующие товары не были включены в файл ингредиентов, так как у их категорий не указан цех: "
+                    + "; ".join(products_missing_workshop),
+                )
+            if products_missing_ingredients:
+                messages.warning(
+                    request,
+                    "Следующие товары не были включены в файл ингредиентов, так как у них нет ни одной связи с ингредиентами: "
+                    + "; ".join(products_missing_ingredients),
+                )
             response = HttpResponse(
                 content,
                 content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

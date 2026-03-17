@@ -13,7 +13,9 @@ from main.utils.extractors import (
     extract_org_standarts_from_mapping,
     extract_org_standarts_from_instance,
     extract_contractor_from_mapping,
-    extract_contractor_from_instance
+    extract_contractor_from_instance,
+    extract_best_before_from_mapping,
+    extract_best_before_from_instance,
 )
 
 
@@ -41,6 +43,16 @@ class ProductRepresentationMixin:
             else:
                 orgs = extract_org_standarts_from_instance(instance)
         result['org_standarts'] = ", ".join(orgs)
+
+        if instance is None:
+            best_before = extract_best_before_from_mapping(base if isinstance(base, dict) else {})
+        else:
+            if isinstance(instance, dict):
+                best_before = extract_best_before_from_mapping(instance)
+            else:
+                best_before = extract_best_before_from_instance(instance)
+        result['best_before'] = best_before
+
         result['company_info'] = format_company_info()
         return result
 
@@ -89,15 +101,11 @@ class ProductPayloadSerializer(serializers.Serializer, ProductRepresentationMixi
     carbs = serializers.DecimalField(max_digits=6, decimal_places=2, required=False)
     barcode = serializers.CharField(required=False, allow_blank=True)
     caption = serializers.CharField(required=False, allow_blank=True)
-    best_before = serializers.IntegerField(required=False)
+    best_before = serializers.CharField(required=False, allow_blank=True)
 
     def to_representation(self, instance):
         base = super().to_representation(instance)
-        request = self.context.get('request')
-        extra = {}
-        if request and request.GET.get('date', None):
-            extra["date"] = request.GET.get('date')
-        return self.build_product_representation(base, instance, extra)
+        return self.build_product_representation(base, instance, {})
 
 
 class ContractorPayloadSerializer(serializers.Serializer, ContractorRepresentationMixin):

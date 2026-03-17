@@ -8,6 +8,7 @@ from main.models import (
     ContractorCategory,
     Contractor,
     ContractorTemplate,
+    ProductBestBefore,
 )
 
 
@@ -32,6 +33,16 @@ def product_with_template(db, template):
         barcode="1234567890123",
     )
     ProductTemplate.objects.create(product=p, template=template)
+    ProductBestBefore.objects.create(
+        product=p,
+        days=3,
+        description="При температуре от 0 до +6°С",
+    )
+    ProductBestBefore.objects.create(
+        product=p,
+        days=5,
+        description="При температуре не выше -18°С",
+    )
     return p
 
 
@@ -115,8 +126,10 @@ def test_product_label_retrieve_passes_date_to_payload(client, print_operator_us
     resp = client.get(f"/api/v1/labels/product/{product_with_template.id}/?date=2026-03-10")
     assert resp.status_code == 200
     payload = captured["payload"]
-    assert payload["manufacture_date"] == "Изготовлено: 10.03.26 02:00"
-    assert payload["expiry_date"] == "Употребить до: 10.03.26 02:00"
+    assert payload["best_before"] == (
+        "Срок годности: 3 суток При температуре от 0 до +6°С, "
+        "5 суток При температуре не выше -18°С"
+    )
 
 
 def test_contractor_label_list_returns_contractors(client, print_operator_user, contractor_with_template):

@@ -51,7 +51,7 @@ def extract_org_standarts_from_mapping(instance):
     for oid in ids:
         obj = obj_map.get(str(oid))
         if obj:
-            org_strings.append(f"{obj.name} СТО {obj.code}")
+            org_strings.append(f"СТО {obj.code}")
     return org_strings
 
 def extract_org_standarts_from_instance(instance):
@@ -61,8 +61,82 @@ def extract_org_standarts_from_instance(instance):
         for rel in rel_qs:
             o = getattr(rel, 'org_standart', None)
             if o:
-                org_strings.append(f"{o.name} СТО {o.code}")
+                org_strings.append(f"СТО {o.code}")
     return org_strings
+
+
+def extract_best_before_from_mapping(instance):
+    """
+    Собирает строку срока годности из данных формы Django admin.
+
+    Ожидает ключи вида:
+    - best_before_options-<idx>-days
+    - best_before_options-<idx>-description
+    """
+    if not isinstance(instance, dict):
+        return ""
+
+    items_by_index = {}
+    for k, v in instance.items():
+        if not isinstance(k, str):
+            continue
+        if not k.startswith("best_before_options-"):
+            continue
+        parts = k.split("-")
+        if len(parts) < 3:
+            continue
+        try:
+            idx = int(parts[1])
+        except Exception:
+            continue
+        field = parts[2]
+        if field not in ("days", "description"):
+            continue
+        if idx not in items_by_index:
+            items_by_index[idx] = {"days": None, "description": ""}
+        items_by_index[idx][field] = v
+
+    lines = []
+    for idx in sorted(items_by_index.keys()):
+        item = items_by_index[idx]
+        days_raw = item.get("days")
+        desc = (item.get("description") or "").strip()
+        try:
+            days = int(days_raw) if days_raw not in (None, "") else None
+        except Exception:
+            days = None
+        if days is None and not desc:
+            continue
+        if days is None:
+            continue
+        line = f"{days} суток {desc}".strip()
+        lines.append(line)
+
+    if not lines:
+        return ""
+    return f"Срок годности: {', '.join(lines)}"
+
+
+def extract_best_before_from_instance(instance):
+    """
+    Собирает строку срока годности из связей Product.best_before_options.
+    """
+    if not hasattr(instance, "best_before_options"):
+        return ""
+
+    lines = []
+    qs = instance.best_before_options.all()
+    for o in qs:
+        days = getattr(o, "days", None)
+        desc = (getattr(o, "description", "") or "").strip()
+        if days is None:
+            continue
+        line = f"{days} суток {desc}".strip()
+        lines.append(line)
+
+    if not lines:
+        return ""
+    return f"Срок годности: {', '.join(lines)}"
 
 def extract_contractor_from_mapping(instance):
     contractor_id = None

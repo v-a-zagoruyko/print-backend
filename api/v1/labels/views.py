@@ -65,7 +65,7 @@ class ProductLabelViewSet(ViewSet):
             Product.objects
             .filter(status=Product.ProductStatus.AVAILABLE)
             .select_related('category',)
-            .prefetch_related('org_standart__org_standart')
+            .prefetch_related('org_standart__org_standart', 'best_before_options')
         )
 
         results = []

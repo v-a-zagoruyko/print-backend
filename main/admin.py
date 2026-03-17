@@ -154,7 +154,7 @@ class ProductIngredientAdmin(admin.ModelAdmin):
 
 
 class ProductAdminForm(forms.ModelForm):
-    HIDDEN_FIELDS = ["name",]
+    HIDDEN_FIELDS = ["name", "quantity",]
 
     class Meta:
         model = Product
@@ -179,13 +179,13 @@ class ProductAdmin(SimpleHistoryAdmin):
     form = ProductAdminForm
     change_form_template = "admin/product_archive_action.html"
 
-    list_display = ["name", "status", "entity_template", "category", "weight", "calories", "protein", "fat", "carbs", "barcode_preview",]
+    list_display = ["name", "status", "entity_template", "category", "barcode_preview",]
     fieldsets = (
         ("Шаблон этикетки", {
             "fields": ("label_preview",)
         }),
         ("Состав и информация", {
-            "fields": ("name", "ingredients", "caption")
+            "fields": ("name", "quantity", "ingredients", "caption")
         }),
         ("Штрихкод", {
             "fields": ("barcode", "barcode_preview")

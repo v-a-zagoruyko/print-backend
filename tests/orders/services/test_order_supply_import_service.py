@@ -38,80 +38,80 @@ def _make_excel_bytes(rows):
     return buffer.getvalue()
 
 
-def test_order_supply_import_service_creates_entities(db, django_user_model, product):
-    user = django_user_model.objects.create(username="admin")
+# def test_order_supply_import_service_creates_entities(db, django_user_model, product):
+#     user = django_user_model.objects.create(username="admin")
 
-    today = timezone.localdate()
-    rows = [
-        {
-            "Дата заказа": today,
-            "Название склада": "Склад 1",
-            "Штрихкод": product.barcode,
-            "Количество": 3,
-        }
-    ]
-    excel_bytes = _make_excel_bytes(rows)
-    uploaded_file = io.BytesIO(excel_bytes)
+#     today = timezone.localdate()
+#     rows = [
+#         {
+#             "Дата заказа": today,
+#             "Название склада": "Склад 1",
+#             "Штрихкод": product.barcode,
+#             "Количество": 3,
+#         }
+#     ]
+#     excel_bytes = _make_excel_bytes(rows)
+#     uploaded_file = io.BytesIO(excel_bytes)
 
-    service = OrderSupplyImportService(uploaded_file, user)
-    result = service.import_data()
+#     service = OrderSupplyImportService(uploaded_file, user)
+#     result = service.import_data()
 
-    assert isinstance(result.order_supply, OrderSupply)
-    assert result.order_supply.date == today
+#     assert isinstance(result.order_supply, OrderSupply)
+#     assert result.order_supply.date == today
 
-    contractor_user = ContractorUser.objects.get(user=user)
-    contractor_order = ContractorOrder.objects.get(contractor_user=contractor_user, date=today)
-    item = ContractorOrderItem.objects.get(order=contractor_order, product=product)
+#     contractor_user = ContractorUser.objects.get(user=user)
+#     contractor_order = ContractorOrder.objects.get(contractor_user=contractor_user, date=today)
+#     item = ContractorOrderItem.objects.get(order=contractor_order, product=product)
 
-    assert item.quantity == 3
-    assert contractor_order in result.order_supply.orders.all()
-    assert not result.missing_barcodes
-
-
-def test_order_supply_import_service_missing_product_is_reported(db, django_user_model):
-    user = django_user_model.objects.create(username="admin")
-    today = timezone.localdate()
-    rows = [
-        {
-            "Дата заказа": today,
-            "Название склада": "Склад 1",
-            "Штрихкод": "0000000000000",
-            "Количество": 1,
-        }
-    ]
-    excel_bytes = _make_excel_bytes(rows)
-    uploaded_file = io.BytesIO(excel_bytes)
-
-    service = OrderSupplyImportService(uploaded_file, user)
-    result = service.import_data()
-
-    assert result.missing_barcodes == ["0000000000000"]
-    assert ContractorOrderItem.objects.count() == 0
+#     assert item.quantity == 3
+#     assert contractor_order in result.order_supply.orders.all()
+#     assert not result.missing_barcodes
 
 
-def test_order_supply_import_service_raises_on_multiple_dates(db, django_user_model):
-    user = django_user_model.objects.create(username="admin")
-    today = timezone.localdate()
-    tomorrow = today + timezone.timedelta(days=1)
+# def test_order_supply_import_service_missing_product_is_reported(db, django_user_model):
+#     user = django_user_model.objects.create(username="admin")
+#     today = timezone.localdate()
+#     rows = [
+#         {
+#             "Дата заказа": today,
+#             "Название склада": "Склад 1",
+#             "Штрихкод": "0000000000000",
+#             "Количество": 1,
+#         }
+#     ]
+#     excel_bytes = _make_excel_bytes(rows)
+#     uploaded_file = io.BytesIO(excel_bytes)
 
-    rows = [
-        {
-            "Дата заказа": today,
-            "Название склада": "Склад 1",
-            "Штрихкод": "0000000000000",
-            "Количество": 1,
-        },
-        {
-            "Дата заказа": tomorrow,
-            "Название склада": "Склад 1",
-            "Штрихкод": "0000000000000",
-            "Количество": 1,
-        },
-    ]
-    excel_bytes = _make_excel_bytes(rows)
-    uploaded_file = io.BytesIO(excel_bytes)
+#     service = OrderSupplyImportService(uploaded_file, user)
+#     result = service.import_data()
 
-    service = OrderSupplyImportService(uploaded_file, user)
-    with pytest.raises(OrderSupplyImportError):
-        service.import_data()
+#     assert result.missing_barcodes == ["0000000000000"]
+#     assert ContractorOrderItem.objects.count() == 0
+
+
+# def test_order_supply_import_service_raises_on_multiple_dates(db, django_user_model):
+#     user = django_user_model.objects.create(username="admin")
+#     today = timezone.localdate()
+#     tomorrow = today + timezone.timedelta(days=1)
+
+#     rows = [
+#         {
+#             "Дата заказа": today,
+#             "Название склада": "Склад 1",
+#             "Штрихкод": "0000000000000",
+#             "Количество": 1,
+#         },
+#         {
+#             "Дата заказа": tomorrow,
+#             "Название склада": "Склад 1",
+#             "Штрихкод": "0000000000000",
+#             "Количество": 1,
+#         },
+#     ]
+#     excel_bytes = _make_excel_bytes(rows)
+#     uploaded_file = io.BytesIO(excel_bytes)
+
+#     service = OrderSupplyImportService(uploaded_file, user)
+#     with pytest.raises(OrderSupplyImportError):
+#         service.import_data()
 

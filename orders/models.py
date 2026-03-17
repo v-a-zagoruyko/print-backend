@@ -99,7 +99,7 @@ class ContractorOrder(models.Model):
         verbose_name_plural = "заявки (пользователь)"
 
     def __str__(self):
-        return f"{self.created_at.strftime('%d.%m.%y')} - {self.contractor_user}"
+        return f"{self.date.strftime('%d.%m.%y')} - {self.contractor_user}"
 
 
 class ContractorOrderItem(models.Model):
@@ -138,6 +138,11 @@ class OrderSupply(models.Model):
     )
     date = models.DateField(
         "Дата поставки",
+    )
+    comment = models.TextField(
+        "Комментарий",
+        blank=True,
+        null=True,
     )
     created_at = models.DateTimeField(
         "Создано",

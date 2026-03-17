@@ -30,12 +30,14 @@ class OrderSupplyImportService:
     WAREHOUSE_COL_NAME = "Название склада"
     BARCODE_COL_NAME = "Штрихкод"
     QUANTITY_COL_NAME = "Количество"
+    CONTRACTOR_COL_NAME = "Покупатель"
 
     # zero-based fallback indices (C, F, H, L)
     DATE_COL_INDEX = 3
     WAREHOUSE_COL_INDEX = 5
     BARCODE_COL_INDEX = 7
     QUANTITY_COL_INDEX = 11
+    CONTRACTOR_COL_INDEX = 17
 
     def __init__(self, uploaded_file, user):
         self.uploaded_file = uploaded_file
@@ -89,12 +91,26 @@ class OrderSupplyImportService:
         quantity_series = self._resolve_column(
             df, self.QUANTITY_COL_NAME, self.QUANTITY_COL_INDEX
         )
+        contractor_category_series = self._resolve_column(
+            df, self.CONTRACTOR_COL_NAME, self.CONTRACTOR_COL_INDEX
+        )
 
         date_value = self._extract_date(date_series)
 
         order_supply, _ = OrderSupply.objects.get_or_create(date=date_value)
 
-        default_category = self._get_or_create_default_category()
+        # Очистить ранее привязанные заявки к этой общей заявке
+        order_supply.orders.clear()
+
+        # Установить комментарий с именем исходного файла
+        filename = getattr(getattr(self.uploaded_file, "name", None), "strip", lambda: "")()
+        if not filename and hasattr(self.uploaded_file, "name"):
+            filename = str(self.uploaded_file.name)
+        if filename:
+            order_supply.comment = f"Создано из {filename}"
+        else:
+            order_supply.comment = "Создано из файла"
+        order_supply.save(update_fields=["comment"])
 
         created_orders = 0
         updated_orders = 0
@@ -110,6 +126,7 @@ class OrderSupplyImportService:
                 "warehouse": warehouse_series,
                 "barcode": barcode_series,
                 "quantity": quantity_series,
+                "contractor_category": contractor_category_series,
             }
         ).dropna(subset=["warehouse", "barcode", "quantity"])
 
@@ -120,6 +137,7 @@ class OrderSupplyImportService:
 
         for (_, row) in data.iterrows():
             warehouse_name = str(row["warehouse"]).strip()
+            contractor_category_name = str(row.get("contractor_category", "")).strip()
             barcode = str(row["barcode"]).strip()
 
             try:
@@ -130,10 +148,17 @@ class OrderSupplyImportService:
             if quantity <= 0:
                 continue
 
+            if contractor_category_name:
+                contractor_category, _ = ContractorCategory.objects.get_or_create(
+                    name=contractor_category_name
+                )
+            else:
+                contractor_category = self._get_or_create_default_category()
+
             contractor, _ = Contractor.objects.get_or_create(
                 name=warehouse_name,
                 defaults={
-                    "category": default_category,
+                    "category": contractor_category,
                     "city": "Тюмень",
                     "street": warehouse_name,
                 },

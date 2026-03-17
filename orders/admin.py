@@ -43,7 +43,7 @@ class ContractorOrderItemInline(admin.TabularInline):
 
 @admin.register(ContractorOrder)
 class ContractorOrderAdmin(SimpleHistoryAdmin):
-    list_display = ["contractor_user", "contractor_user__user", "status", "date",]
+    list_display = ["date", "contractor_user", "contractor_user__user", "status",]
     list_filter = ["date", "status",]
     autocomplete_fields = ["contractor_user",]
     search_fields = ["contractor_user__user",]
@@ -77,9 +77,9 @@ class OrderSupplyAdmin(SimpleHistoryAdmin):
     change_form_template = "admin/order_excel_download.html"
     form = OrderSupplyForm
 
-    list_display = ["created_at", "date", "updated_at",]
+    list_display = ["date", "comment"]
     list_filter = ["date",]
-    fields = ["created_at", "date", "orders"]
+    fields = ["date", "comment", "orders"]
     readonly_fields = ["created_at", "updated_at",]
     filter_vertical = ["orders"]
 

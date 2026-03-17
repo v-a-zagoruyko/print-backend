@@ -1,10 +1,13 @@
 import io
-from datetime import datetime
+from typing import Dict, List, Set, Tuple
 from urllib.parse import quote
-from django.utils import timezone
+
 from django.db.models import Prefetch
+from django.utils import timezone
 import pandas as pd
 from xlsxwriter.utility import xl_col_to_name
+
+from main.models import Product
 from orders.models import ContractorOrder, ContractorOrderItem
 
 
@@ -14,11 +17,12 @@ class OrderExcelService:
     TOTAL_COL_WIDTH = 18
     FONT_NAME = 'Times New Roman'
     FONT_SIZE = 13
+    QUANTITY_FONT_SIZE = 15
 
     def __init__(self, order_supply):
         self.order_supply = order_supply
 
-    def _collect_rows(self):
+    def _collect_rows(self) -> Tuple[List[dict], Dict[str, float], Set[int]]:
         orders_qs = (
             self.order_supply.orders
             .exclude(status=ContractorOrder.Status.CANCELLED)
@@ -30,7 +34,9 @@ class OrderExcelService:
         )
         rows = []
         seen_contractors = {}
-        product_prices = {}
+        product_prices: Dict[str, float] = {}
+        seen_product_pks: Set[int] = set()
+
         for order in orders_qs:
             cu = order.contractor_user
             company = getattr(cu, 'contractor', None)
@@ -41,15 +47,24 @@ class OrderExcelService:
                 prod = item.product
                 prod_name = getattr(prod, 'name', None) or str(prod)
                 product_prices[prod_name] = float(getattr(prod, 'price', 0) or 0)
+                seen_product_pks.add(prod.pk)
                 rows.append({
                     'product_name': prod_name,
                     'contractor_name': contractor_name,
                     'quantity': int(item.quantity),
                 })
-        contractors = [name for _, name in seen_contractors.items()]
-        return rows, contractors, product_prices
 
-    def _build_pivot_df(self, rows, product_prices):
+        return rows, product_prices, seen_product_pks
+
+    def _get_product_workshops(self, seen_product_pks: Set[int]) -> Dict[str, str]:
+        product_workshops: Dict[str, str] = {}
+        for prod in Product.objects.filter(pk__in=seen_product_pks).select_related('category__workshop'):
+            workshop = prod.category.workshop if prod.category else None
+            if workshop is not None:
+                product_workshops[prod.name] = workshop.name
+        return product_workshops
+
+    def _build_pivot_df(self, rows: List[dict], product_prices: Dict[str, float]) -> pd.DataFrame:
         if not rows:
             return pd.DataFrame(columns=['', 'Цена'])
         df_raw = pd.DataFrame(rows)
@@ -59,7 +74,7 @@ class OrderExcelService:
             columns='contractor_name',
             values='quantity',
             aggfunc='sum',
-            fill_value=0
+            fill_value=0,
         )
         df = pivot.reset_index()
         df.rename(columns={'product_name': ''}, inplace=True)
@@ -74,18 +89,28 @@ class OrderExcelService:
             'text_wrap': True,
             'valign': 'center',
             'align': 'center',
+            'border': 1,
         })
         text_format = workbook.add_format({
             'font_name': self.FONT_NAME,
             'font_size': self.FONT_SIZE,
             'text_wrap': True,
             'valign': 'top',
+            'border': 1,
         })
         number_format = workbook.add_format({
             'font_name': self.FONT_NAME,
-            'font_size': self.FONT_SIZE,
+            'font_size': self.QUANTITY_FONT_SIZE,
             'valign': 'top',
             'num_format': '0',
+            'border': 1,
+        })
+        price_format = workbook.add_format({
+            'font_name': self.FONT_NAME,
+            'font_size': self.FONT_SIZE,
+            'valign': 'top',
+            'num_format': '0.00',
+            'border': 1,
         })
         total_header_format = workbook.add_format({
             'font_name': self.FONT_NAME,
@@ -99,21 +124,15 @@ class OrderExcelService:
         })
         total_number_format = workbook.add_format({
             'font_name': self.FONT_NAME,
-            'font_size': self.FONT_SIZE,
+            'font_size': self.QUANTITY_FONT_SIZE,
             'valign': 'top',
             'num_format': '0',
             'bold': True,
             'border': 1,
         })
-        price_format = workbook.add_format({
-            'font_name': self.FONT_NAME,
-            'font_size': self.FONT_SIZE,
-            'valign': 'top',
-            'num_format': '0.00',
-        })
         total_price_format = workbook.add_format({
             'font_name': self.FONT_NAME,
-            'font_size': self.FONT_SIZE,
+            'font_size': self.QUANTITY_FONT_SIZE,
             'valign': 'top',
             'num_format': '0.00',
             'bold': True,
@@ -129,15 +148,19 @@ class OrderExcelService:
             'total_price': total_price_format,
         }
 
-    def _write_table_and_formats(self, worksheet, df, formats):
+    def _write_sheet(self, writer, formats, df: pd.DataFrame, sheet_name: str):
+        df.to_excel(writer, index=False, sheet_name=sheet_name)
+        worksheet = writer.sheets[sheet_name]
         nrows = len(df)
         ncols = len(df.columns)
+
         for col_idx, col_name in enumerate(df.columns):
             width = self.FIRST_COL_WIDTH if col_idx == 0 else self.OTHER_COL_WIDTH
             worksheet.set_column(col_idx, col_idx, width)
             worksheet.write(0, col_idx, col_name or '', formats['header'])
+
         for row_idx in range(1, nrows + 1):
-            for col_idx in range(0, ncols):
+            for col_idx in range(ncols):
                 value = df.iloc[row_idx - 1, col_idx]
                 if col_idx == 0:
                     worksheet.write(row_idx, col_idx, value, formats['text'])
@@ -146,9 +169,7 @@ class OrderExcelService:
                 else:
                     worksheet.write(row_idx, col_idx, value, formats['number'])
 
-    def _write_total_column(self, worksheet, df, formats):
-        nrows = len(df)
-        ncols = len(df.columns)
+        # Total column "Общее количество"
         total_col_idx = ncols
         worksheet.set_column(total_col_idx, total_col_idx, self.TOTAL_COL_WIDTH)
         worksheet.write(0, total_col_idx, 'Общее количество', formats['total_header'])
@@ -157,19 +178,17 @@ class OrderExcelService:
         for row_idx in range(1, nrows + 1):
             start_col_letter = xl_col_to_name(first_data_col)
             end_col_letter = xl_col_to_name(last_data_col)
-            excel_row = row_idx + 0
-            formula = f"=SUM({start_col_letter}{excel_row + 1}:{end_col_letter}{excel_row + 1})"
+            excel_row = row_idx + 1
+            formula = f"=SUM({start_col_letter}{excel_row}:{end_col_letter}{excel_row})"
             worksheet.write_formula(row_idx, total_col_idx, formula, formats['total_number'])
 
-    def _write_total_row(self, worksheet, df, formats):
-        nrows = len(df)
-        ncols = len(df.columns)
-        total_row_idx = nrows + 1  # row after all data rows (0-indexed)
+        # Total row with SUMPRODUCT per warehouse column
+        total_row_idx = nrows + 1
         worksheet.write(total_row_idx, 0, 'Итого', formats['total_header'])
         price_col_letter = xl_col_to_name(1)  # B — цена
         first_excel_data_row = 2
         last_excel_data_row = nrows + 1
-        for col_idx in range(2, ncols):  # warehouse columns only
+        for col_idx in range(2, ncols):
             col_letter = xl_col_to_name(col_idx)
             formula = (
                 f"=SUMPRODUCT("
@@ -178,22 +197,28 @@ class OrderExcelService:
             )
             worksheet.write_formula(total_row_idx, col_idx, formula, formats['total_price'])
 
+        worksheet.autofilter(0, 0, nrows, ncols)
+        worksheet.freeze_panes(1, 1)
+
     def generate_xlsx_bytes(self):
-        rows, contractors, product_prices = self._collect_rows()
-        df = self._build_pivot_df(rows, product_prices)
+        rows, product_prices, seen_product_pks = self._collect_rows()
+        product_workshops = self._get_product_workshops(seen_product_pks)
+
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-            sheet_name = 'Заявка'
-            df.to_excel(writer, index=False, sheet_name=sheet_name)
-            workbook = writer.book
-            worksheet = writer.sheets[sheet_name]
-            formats = self._create_formats(workbook)
-            self._write_table_and_formats(worksheet, df, formats)
-            self._write_total_column(worksheet, df, formats)
-            self._write_total_row(worksheet, df, formats)
-            total_cols = len(df.columns) + 1
-            worksheet.autofilter(0, 0, len(df), total_cols - 1)
-            worksheet.freeze_panes(1, 1)
+            formats = self._create_formats(writer.book)
+
+            # Sheet 1: all products
+            df_all = self._build_pivot_df(rows, product_prices)
+            self._write_sheet(writer, formats, df_all, 'Заявка')
+
+            # One sheet per workshop
+            for workshop_name in sorted(set(product_workshops.values())):
+                workshop_products = {p for p, w in product_workshops.items() if w == workshop_name}
+                workshop_rows = [r for r in rows if r['product_name'] in workshop_products]
+                df_ws = self._build_pivot_df(workshop_rows, product_prices)
+                self._write_sheet(writer, formats, df_ws, workshop_name[:31])
+
         buffer.seek(0)
         date = getattr(self.order_supply, 'date')
         date_str = date.strftime('%d.%m.%Y')

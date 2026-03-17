@@ -1,4 +1,5 @@
 import logging
+from django import forms
 from django.contrib import admin, messages
 from django.utils.safestring import mark_safe
 from django.db.models import JSONField
@@ -21,6 +22,7 @@ from .models import (
     Ingredient,
     ProductIngredient,
     Workshop,
+    ProductBestBefore,
 )
 
 logger = logging.getLogger(__name__)
@@ -124,6 +126,12 @@ class ProductIngredientInline(admin.TabularInline):
     extra = 1
 
 
+class ProductBestBeforeInline(admin.TabularInline):
+    model = ProductBestBefore
+    fields = ["days", "description"]
+    extra = 1
+
+
 @admin.register(ProductCategory)
 class ProductCategoryAdmin(admin.ModelAdmin):
 
@@ -145,6 +153,20 @@ class ProductIngredientAdmin(admin.ModelAdmin):
         return False
 
 
+class ProductAdminForm(forms.ModelForm):
+    HIDDEN_FIELDS = ["name",]
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.HIDDEN_FIELDS:
+            if field_name in self.fields:
+                self.fields[field_name].widget = forms.HiddenInput()
+
+
 @admin.register(Workshop)
 class WorkshopAdmin(admin.ModelAdmin):
 
@@ -154,6 +176,7 @@ class WorkshopAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(SimpleHistoryAdmin):
+    form = ProductAdminForm
     change_form_template = "admin/product_archive_action.html"
 
     list_display = ["name", "status", "entity_template", "category", "weight", "calories", "protein", "fat", "carbs", "barcode_preview",]
@@ -161,23 +184,17 @@ class ProductAdmin(SimpleHistoryAdmin):
         ("Шаблон этикетки", {
             "fields": ("label_preview",)
         }),
-        ("Основное", {
-            "fields": ("status", "category", "name")
-        }),
         ("Состав и информация", {
-            "fields": ("ingredients", "caption", "quantity")
-        }),
-        ("Питательная ценность", {
-            "fields": ("weight", "calories", "fat", "protein", "carbs")
+            "fields": ("name", "ingredients", "caption")
         }),
         ("Штрихкод", {
             "fields": ("barcode", "barcode_preview")
         }),
     )
-    readonly_fields = ["status", "barcode_preview", "label_preview",]
+    readonly_fields = ["status", "category", "barcode_preview", "label_preview",]
     search_fields = ["name", "barcode",]
     list_filter = ["category", "status", ProductTemplateFilter,]
-    inlines = [ProductOrgStandartInline, ProductTemplateInline, ProductIngredientInline,]
+    inlines = [ProductOrgStandartInline, ProductIngredientInline, ProductBestBeforeInline, ProductTemplateInline]
     actions = None
 
     def change_view(self, request, object_id, form_url='', extra_context=None):

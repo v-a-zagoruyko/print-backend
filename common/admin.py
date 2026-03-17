@@ -13,6 +13,7 @@ from .models import (
     ProductCategoryProxy,
     ProductProxy,
     ProductIngredientProxy,
+    ProductBestBeforeProxy,
 )
 
 logger = logging.getLogger(__name__)
@@ -60,6 +61,12 @@ class ProductIngredientProxyInline(admin.TabularInline):
     extra = 1
 
 
+class ProductBestBeforeProxyInline(admin.TabularInline):
+    model = ProductBestBeforeProxy
+    fields = ["days", "description"]
+    extra = 1
+
+
 @admin.register(ProductCategoryProxy)
 class ProductCategoryProxyAdmin(admin.ModelAdmin):
     list_display = ["name",]
@@ -70,13 +77,13 @@ class ProductCategoryProxyAdmin(admin.ModelAdmin):
 class ProductProxyAdmin(SimpleHistoryAdmin):
     change_form_template = "admin/product_archive_action.html"
 
-    list_display = ["name", "status", "category", "weight", "calories", "protein", "fat", "carbs",]
+    list_display = ["name", "status", "category", "weight", "calories", "protein", "fat", "carbs", "price", "quantity",]
     fieldsets = (
         ("Основное", {
             "fields": ("status", "category", "name")
         }),
         ("Пищевая ценность", {
-            "fields": ("weight", "calories", "fat", "protein", "carbs")
+            "fields": ("weight", "calories", "protein", "fat", "carbs")
         }),
         ("Цена и количество", {
             "fields": ("price", "quantity")
@@ -85,7 +92,7 @@ class ProductProxyAdmin(SimpleHistoryAdmin):
     readonly_fields = ["status",]
     search_fields = ["name",]
     list_filter = ["category", "status"]
-    inlines = [ProductIngredientProxyInline, ProductOrgStandartProxyInline,]
+    inlines = [ProductIngredientProxyInline, ProductBestBeforeProxyInline,]
     actions = None
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
@@ -117,6 +124,13 @@ class ProductProxyAdmin(SimpleHistoryAdmin):
 
 @admin.register(ProductIngredientProxy)
 class ProductIngredientProxyAdmin(SimpleHistoryAdmin):
+
+    def has_module_permission(self, request):
+        return False
+
+
+@admin.register(ProductBestBeforeProxy)
+class ProductBestBeforeProxyAdmin(SimpleHistoryAdmin):
 
     def has_module_permission(self, request):
         return False

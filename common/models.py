@@ -7,6 +7,7 @@ from main.models import (
     ProductCategory,
     Product,
     ProductIngredient,
+    ProductBestBefore,
 )
 
 
@@ -66,3 +67,10 @@ class ProductIngredientProxy(ProductIngredient):
         proxy = True
         verbose_name = "ингредиент товара"
         verbose_name_plural = "ингредиенты товаров"
+
+
+class ProductBestBeforeProxy(ProductBestBefore):
+    class Meta:
+        proxy = True
+        verbose_name = "срок годности товара"
+        verbose_name_plural = "сроки годности товара"

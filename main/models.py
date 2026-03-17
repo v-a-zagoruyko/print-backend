@@ -387,6 +387,30 @@ class ProductIngredient(models.Model):
         return f"{self.product.name}: {self.ingredient.name} ({self.weight_grams} г)"
 
 
+class ProductBestBefore(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="best_before_options",
+        verbose_name="Товар",
+    )
+    days = models.PositiveIntegerField(
+        "Срок годности, дней",
+    )
+    description = models.TextField(
+        "Условия хранения",
+        help_text="Например: При температуре от 0 до +6°С",
+    )
+
+    class Meta:
+        verbose_name = "срок годности товара"
+        verbose_name_plural = "сроки годности товара"
+        ordering = ["days"]
+
+    def __str__(self):
+        return f"{self.days} дн. ({self.description})"
+
+
 class ProductTemplate(models.Model):
     product = models.ForeignKey(
         Product,

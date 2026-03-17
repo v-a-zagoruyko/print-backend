@@ -34,6 +34,7 @@ svglib = "^1.6.0"
 cryptography = "^46.0.3"
 xlsxwriter = "^3.2.9"
 pandas = "^2.3.3"
+openpyxl = "^3.1.5"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.0"

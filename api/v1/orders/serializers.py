@@ -21,9 +21,11 @@ class ProductCartSerializer(serializers.ModelSerializer):
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):
+    category = serializers.CharField(source="category.name", read_only=True)
+
     class Meta:
         model = Product
-        fields = ("id", "name", "barcode",)
+        fields = ("id", "name", "barcode", "category",)
 
 
 class ContractorUserSerializer(serializers.ModelSerializer):

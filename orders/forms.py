@@ -1,5 +1,7 @@
 from django import forms
+
 from .models import ContractorUser, ContractorOrder, OrderSupply
+
 
 class OrderSupplyForm(forms.ModelForm):
     class Meta:
@@ -11,5 +13,11 @@ class OrderSupplyForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["orders"].queryset = ContractorOrder.objects.filter(
             contractor_user__status=ContractorUser.Status.ACTIVE,
-            status=ContractorOrder.Status.CREATED
+            status=ContractorOrder.Status.CREATED,
         )
+
+
+class OrderSupplyImportForm(forms.Form):
+    file = forms.FileField(
+        label="Файл заявки поставщика (Excel)",
+    )

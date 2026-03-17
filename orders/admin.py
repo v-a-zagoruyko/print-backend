@@ -1,13 +1,19 @@
 import logging
 from urllib.parse import quote
+
 from django.contrib import admin, messages
-from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.http import HttpResponse, HttpRequest
+from django.shortcuts import redirect, render
 from simple_history.admin import SimpleHistoryAdmin
+
+from .forms import OrderSupplyForm, OrderSupplyImportForm
+from .models import ContractorUser, ContractorOrder, ContractorOrderItem, OrderSupply
 from .services.order_excel_service import OrderExcelService
 from .services.order_ingredients_excel_service import OrderIngredientsExcelService
-from .models import ContractorUser, ContractorOrder, ContractorOrderItem, OrderSupply
-from .forms import OrderSupplyForm
+from .services.order_supply_import_service import (
+    OrderSupplyImportError,
+    OrderSupplyImportService,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +82,63 @@ class OrderSupplyAdmin(SimpleHistoryAdmin):
     fields = ["created_at", "date", "orders"]
     readonly_fields = ["created_at", "updated_at",]
     filter_vertical = ["orders"]
+
+    actions = ["import_order_supply_from_excel"]
+
+    def import_order_supply_from_excel(self, request: HttpRequest, queryset):
+        """
+        Admin action для импорта заявки поставщика из Excel.
+        Использует OrderSupplyImportService и показывает результат через admin messages.
+        """
+        if "apply" in request.POST:
+            form = OrderSupplyImportForm(request.POST, request.FILES)
+            if form.is_valid():
+                uploaded_file = form.cleaned_data["file"]
+                service = OrderSupplyImportService(uploaded_file, request.user)
+                try:
+                    result = service.import_data()
+                except OrderSupplyImportError as exc:
+                    messages.error(request, str(exc))
+                    return None
+                except Exception:
+                    logger.exception("Unexpected error during OrderSupply import")
+                    messages.error(
+                        request,
+                        "Произошла непредвиденная ошибка при импорте заявки поставщика.",
+                    )
+                    return None
+
+                msg_parts = [
+                    f"Общая заявка на дату {result.order_supply.date.strftime('%d.%m.%Y')} успешно обновлена.",
+                    f"Создано заявок контрагентов: {result.created_orders}.",
+                    f"Обновлено заявок контрагентов: {result.updated_orders}.",
+                    f"Создано позиций: {result.created_items}.",
+                    f"Обновлено позиций: {result.updated_items}.",
+                ]
+                messages.success(request, " ".join(msg_parts))
+
+                if result.missing_barcodes:
+                    messages.warning(
+                        request,
+                        "Следующие штрихкоды не найдены и были пропущены: "
+                        + "; ".join(result.missing_barcodes),
+                    )
+
+                return None
+        else:
+            form = OrderSupplyImportForm()
+
+        context = {
+            "title": "Импорт заявки поставщика из Excel",
+            "form": form,
+            "action_checkbox_name": admin.helpers.ACTION_CHECKBOX_NAME,
+            "queryset": queryset,
+        }
+        return render(request, "admin/order_supply_import.html", context)
+
+    import_order_supply_from_excel.short_description = (
+        "Импортировать заявку поставщика из Excel"
+    )
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         obj = self.get_object(request, object_id)

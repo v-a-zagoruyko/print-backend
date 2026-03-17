@@ -24,7 +24,6 @@ def product_with_template(db, template):
         name="Product 1",
         ingredients="Ing",
         weight="100g",
-        best_before=3,
         calories="10.00",
         protein="1.00",
         fat="1.00",
@@ -116,7 +115,7 @@ def test_product_label_retrieve_passes_date_to_payload(client, print_operator_us
     assert resp.status_code == 200
     payload = captured["payload"]
     assert payload["manufacture_date"] == "Изготовлено: 10.03.26 02:00"
-    assert payload["expiry_date"] == "Употребить до: 13.03.26 02:00"
+    assert payload["expiry_date"] == "Употребить до: 10.03.26 02:00"
 
 
 def test_contractor_label_list_returns_contractors(client, print_operator_user, contractor_with_template):

@@ -16,7 +16,6 @@ def product(db):
         name="Product 1",
         ingredients="Ing",
         weight="100g",
-        best_before=3,
         calories="10.00",
         protein="1.00",
         fat="1.00",

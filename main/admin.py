@@ -165,7 +165,7 @@ class ProductAdmin(SimpleHistoryAdmin):
             "fields": ("status", "category", "name")
         }),
         ("Состав и информация", {
-            "fields": ("ingredients", "caption", "best_before")
+            "fields": ("ingredients", "caption", "quantity")
         }),
         ("Питательная ценность", {
             "fields": ("weight", "calories", "fat", "protein", "carbs")

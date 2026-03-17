@@ -70,23 +70,17 @@ class ProductCategoryProxyAdmin(admin.ModelAdmin):
 class ProductProxyAdmin(SimpleHistoryAdmin):
     change_form_template = "admin/product_archive_action.html"
 
-    list_display = ["name", "status", "category", "weight", "calories", "protein", "fat", "carbs", "barcode_preview",]
+    list_display = ["name", "status", "category", "weight", "calories", "protein", "fat", "carbs",]
     fieldsets = (
         ("Основное", {
             "fields": ("status", "category", "name")
         }),
-        ("Состав и информация", {
-            "fields": ("ingredients", "caption", "best_before")
-        }),
-        ("Питательная ценность", {
+        ("Пищевая ценность", {
             "fields": ("weight", "calories", "fat", "protein", "carbs")
         }),
-        ("Штрихкод", {
-            "fields": ("barcode", "barcode_preview")
-        }),
     )
-    readonly_fields = ["status", "barcode_preview",]
-    search_fields = ["name", "barcode",]
+    readonly_fields = ["status",]
+    search_fields = ["name",]
     list_filter = ["category", "status"]
     inlines = [ProductOrgStandartProxyInline, ProductIngredientProxyInline,]
     actions = None

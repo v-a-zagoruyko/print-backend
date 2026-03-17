@@ -273,47 +273,60 @@ class Product(models.Model):
     ingredients = models.TextField(
         "Состав",
         max_length=1600,
+        null=True,
+        blank=True,
     )
     weight = models.CharField(
         "Вес",
         max_length=100,
         help_text="Пример: 100/130 гр.",
     )
-    best_before = models.PositiveIntegerField(
-        "Срок хранения",
-        default=4,
-        help_text="Количество дней",
-    )
     calories = models.DecimalField(
         "Калории",
         max_digits=6,
         decimal_places=2,
+        help_text="На 100 г. продукта",
     )
     protein = models.DecimalField(
         "Белки",
         max_digits=6,
         decimal_places=2,
+        help_text="На 100 г. продукта",
     )
     fat = models.DecimalField(
         "Жиры",
         max_digits=6,
         decimal_places=2,
+        help_text="На 100 г. продукта",
     )
     carbs = models.DecimalField(
         "Углеводы",
         max_digits=6,
         decimal_places=2,
+        help_text="На 100 г. продукта",
     )
     barcode = models.CharField(
         "Штрихкод",
         max_length=13,
         validators=[
-            RegexValidator(regex=r'^\d{13}$',message='Штрихкод должен содержать ровно 13 цифр'),
-        ]
+            RegexValidator(
+                regex=r'^(\d{13})?$',
+                message='Штрихкод должен быть пустым или содержать ровно 13 цифр',
+            ),
+        ],
+        null=True,
+        blank=True,
     )
     caption = models.TextField(
         "Дополнительная информация",
         default="Хранить при температуре от 0 до +6°С. Продукция может содержать аллергены: сельдерей, соя, арахис, орехи, рыба, морепродукты, пшеница.",
+        null=True,
+        blank=True,
+    )
+    quantity = models.PositiveIntegerField(
+        "Количество",
+        null=True,
+        blank=True,
     )
     ingredients_m2m = models.ManyToManyField(
         Ingredient,

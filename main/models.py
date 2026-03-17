@@ -305,6 +305,13 @@ class Product(models.Model):
         decimal_places=2,
         help_text="На 100 г. продукта",
     )
+    price = models.DecimalField(
+        "Цена",
+        default=0,
+        max_digits=8,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+    )
     barcode = models.CharField(
         "Штрихкод",
         max_length=13,
@@ -325,8 +332,7 @@ class Product(models.Model):
     )
     quantity = models.PositiveIntegerField(
         "Количество",
-        null=True,
-        blank=True,
+        default=1,
     )
     ingredients_m2m = models.ManyToManyField(
         Ingredient,

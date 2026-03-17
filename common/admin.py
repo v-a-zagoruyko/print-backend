@@ -78,11 +78,14 @@ class ProductProxyAdmin(SimpleHistoryAdmin):
         ("Пищевая ценность", {
             "fields": ("weight", "calories", "fat", "protein", "carbs")
         }),
+        ("Цена и количество", {
+            "fields": ("price", "quantity")
+        }),
     )
     readonly_fields = ["status",]
     search_fields = ["name",]
     list_filter = ["category", "status"]
-    inlines = [ProductOrgStandartProxyInline, ProductIngredientProxyInline,]
+    inlines = [ProductIngredientProxyInline, ProductOrgStandartProxyInline,]
     actions = None
 
     def change_view(self, request, object_id, form_url='', extra_context=None):

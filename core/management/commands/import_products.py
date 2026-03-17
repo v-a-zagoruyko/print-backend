@@ -92,9 +92,10 @@ class Command(BaseCommand):
         p_fat_col = col_lookup(prod_cols, ["fat", "жиры"])
         p_carbs_col = col_lookup(prod_cols, ["carbs", "углеводы"])
         p_barcode_col = col_lookup(prod_cols, ["barcode", "штрихкод"])
+        p_price_col = col_lookup(prod_cols, ["price", "цена"])
 
-        if not p_barcode_col or not p_name_col:
-            self.stderr.write(self.style.ERROR("В таблице продуктов не нашёл обязательные колонки (barcode/name)"))
+        if not p_barcode_col or not p_name_col or not p_price_col:
+            self.stderr.write(self.style.ERROR("В таблице продуктов не нашёл обязательные колонки (barcode/name/price)"))
             return
 
         cur.execute(f"SELECT {cat_id_col} as id, {cat_name_col} as name FROM '{category_table}'")
@@ -124,6 +125,7 @@ class Command(BaseCommand):
         added_products = 0
         skipped_barcode = 0
         skipped_no_cat = 0
+        skipped_no_price = 0
         errors = 0
 
         with transaction.atomic():
@@ -143,6 +145,14 @@ class Command(BaseCommand):
                     continue
 
                 name = (r[p_name_col] or "").strip()
+                raw_price = r[p_price_col] if p_price_col in r.keys() else None
+                try:
+                    price = Decimal(str(raw_price))
+                except (InvalidOperation, TypeError, ValueError):
+                    price = None
+                if price is None:
+                    skipped_no_price += 1
+                    continue
                 ingredients = (r[p_ingredients_col] or "").strip() if p_ingredients_col in r.keys() else ""
                 weight = (r[p_weight_col] or "").strip() if p_weight_col in r.keys() else ""
                 def dec(val):
@@ -171,6 +181,7 @@ class Command(BaseCommand):
                         protein=protein if protein is not None else 0,
                         fat=fat if fat is not None else 0,
                         carbs=carbs if carbs is not None else 0,
+                        price=price,
                         barcode=barcode,
                         template=template,
                     )

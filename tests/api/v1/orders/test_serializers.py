@@ -14,6 +14,7 @@ def product(db):
     return Product.objects.create(
         category=cat,
         name="Product 1",
+        price=100,
         ingredients="Ing",
         weight="100g",
         calories="10.00",

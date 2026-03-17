@@ -7,32 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("common", "0002_productingredientproxy"),
-        ("main", "0018_workshop_productcategoryworkshop"),
     ]
 
     operations = [
-        migrations.CreateModel(
-            name="ProductCategoryWorkshopProxy",
-            fields=[],
-            options={
-                "verbose_name": "цех категории товара",
-                "verbose_name_plural": "цеха категорий товаров",
-                "proxy": True,
-                "indexes": [],
-                "constraints": [],
-            },
-            bases=("main.productcategoryworkshop",),
-        ),
-        migrations.CreateModel(
-            name="WorkshopProxy",
-            fields=[],
-            options={
-                "verbose_name": "цех",
-                "verbose_name_plural": "цеха",
-                "proxy": True,
-                "indexes": [],
-                "constraints": [],
-            },
-            bases=("main.workshop",),
-        ),
     ]

@@ -9,11 +9,4 @@ class Migration(migrations.Migration):
         ("common", "0003_productcategoryworkshopproxy_workshopproxy"),
     ]
 
-    operations = [
-        migrations.DeleteModel(
-            name="ProductCategoryWorkshopProxy",
-        ),
-        migrations.DeleteModel(
-            name="WorkshopProxy",
-        ),
-    ]
+    operations = []

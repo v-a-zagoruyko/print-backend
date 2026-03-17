@@ -43,7 +43,7 @@ class ContractorOrderItemInline(admin.TabularInline):
 
 @admin.register(ContractorOrder)
 class ContractorOrderAdmin(SimpleHistoryAdmin):
-    list_display = ["date", "contractor_user", "contractor_user__user", "status",]
+    list_display = ["date", "contractor_user", "status",]
     list_filter = ["date", "status",]
     autocomplete_fields = ["contractor_user",]
     search_fields = ["contractor_user__user",]
@@ -69,7 +69,7 @@ class ContractorOrderAdmin(SimpleHistoryAdmin):
         return ["status",]
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        return request.user.is_superuser
 
 
 @admin.register(OrderSupply)
@@ -180,4 +180,4 @@ class OrderSupplyAdmin(SimpleHistoryAdmin):
         return super().change_view(request, object_id, form_url, extra_context)
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        return request.user.is_superuser
